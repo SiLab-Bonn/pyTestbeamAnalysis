@@ -2,12 +2,14 @@
 from __future__ import division
 
 import logging
+import progressbar
 import re
 from collections import Iterable
 
 import tables as tb
 import numpy as np
 from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib.pylab as plt
 from scipy.optimize import curve_fit
 from scipy.stats import binned_statistic_2d
 import os
@@ -848,3 +850,86 @@ def calculate_efficiency(input_tracks_file, input_alignment_file, output_pdf, bi
                         out_pass[:] = total_track_density_with_DUT_hit.T
                         out_total[:] = total_track_density.T
     return efficiencies, pass_tracks, total_tracks
+
+
+def track_angle(input_tracks_file, output_track_angle_file, use_duts=None, output_pdf=None):
+    '''Takes the tracks and calculates the hit efficiency and hit/track hit distance for selected DUTs.
+    Parameters
+    ----------
+    input_tracks_file : string
+        file name with the tracks table
+    output_track_angle_file: string
+        output pytables file with fitted means and sigmas of track angles for selected DUTs
+    use_duts : iterable
+        The duts to plot/calculate the track angle. If None all duts in the input_tracks_file are used
+    output_pdf : string
+        file name for the output pdf
+    '''
+    logging.info('=== Calculate track angles ===')
+
+    use_duts = None
+    slopes = {}
+    with tb.open_file(input_tracks_file, 'r') as in_file_h5:
+        n_duts = len(in_file_h5.list_nodes("/"))  # determine number of DUTs
+
+        if use_duts is None:
+            use_duts = range(n_duts)
+        else:
+            use_duts = use_duts
+        dut_index = [('Tracks_DUT_%i' % i) for i in use_duts]
+
+        widgets = ['', progressbar.Percentage(), ' ',
+                   progressbar.Bar(marker='*', left='|', right='|'),
+                   ' ', progressbar.AdaptiveETA()]
+        progress_bar = progressbar.ProgressBar(widgets=widgets,
+                                               maxval=len(use_duts),
+                                               term_width=80)
+        progress_bar.start()
+
+        i = 0  # counting number of progressed DUTs, needed for progressbar
+        for node in in_file_h5.root:  # loop through all DUTs in track table
+            if node.name in dut_index:  # only store track slopes of selected DUTs
+                slopes.update({node.name: [node[::100000]['slope_0'],
+                                           node[::100000]['slope_1']]})
+                i = i + 1
+                progress_bar.update(i)
+        progress_bar.finish()
+
+    direction = ['x', 'y', 'z']
+    result = np.zeros(shape=(6,), dtype=[('mean_slope_0', np.float), ('mean_slope_1', np.float), ('sigma_slope_0', np.float), ('sigma_slope_1', np.float)])
+
+    logging.info('=== Plot track angles ===')
+
+    with PdfPages(output_pdf) as output_fig:
+        i = 0  # counting number of progressed DUTs
+        for key in slopes:
+            for j in (0, 1):  # iterate over slopes
+                min = np.min(slopes[key][j])
+                max = np.max(slopes[key][j])
+                edges = np.arange(min - 0.00005, max + 0.00005, 0.0001)
+                bin_center = (edges[1:] + edges[:-1]) / 2.0
+
+                sigma = np.std(np.arctan(slopes[key][j]))  # initial guess for sigma
+                mean = np.mean(np.arctan(slopes[key][j]))  # initial guess for mean
+
+                histo = plt.hist(np.arctan(slopes[key][j]), edges, label='Angular Distribution', color='#4361ba')
+                fit, cov = curve_fit(analysis_utils.gauss, bin_center, histo[0], p0=[np.amax(histo[0]), mean, sigma])
+
+                x_gauss = np.arange(np.min(edges), np.max(edges), step=0.00001)
+                plt.plot(x_gauss, analysis_utils.gauss(x_gauss, *fit), color='r', label='Gauss-Fit:\nMean: %.5f,\nSigma: %.5f' % (fit[1], fit[2]))
+
+                result['mean_slope_%i' % j][i] = fit[1]
+                result['sigma_slope_%i' % j][i] = fit[2]
+
+                plt.title('Angular Distribution of Fitted Tracks for %s' % key)
+                plt.ylabel('#')
+                plt.xlabel('Track angle in %s / rad' % direction[i])
+                plt.legend(loc='best', fancybox=True, frameon=True)
+
+                output_fig.savefig()
+                plt.close()
+            i = i + 1
+
+    with tb.open_file(output_track_angle_file, mode="w") as out_file_h5:
+        result_table = out_file_h5.create_table(out_file_h5.root, name='TrackAngle', description=result.dtype, title='Fitted means and sigmas for track angles', filters=tb.Filters(complib='blosc', complevel=5, fletcher32=False))
+        result_table.append(result)
