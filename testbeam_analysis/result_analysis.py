@@ -867,7 +867,6 @@ def track_angle(input_tracks_file, output_track_angle_file, use_duts=None, outpu
     '''
     logging.info('=== Calculate track angles ===')
 
-    use_duts = None
     slopes = {}
     with tb.open_file(input_tracks_file, 'r') as in_file_h5:
         n_duts = len(in_file_h5.list_nodes("/"))  # determine number of DUTs
@@ -889,14 +888,14 @@ def track_angle(input_tracks_file, output_track_angle_file, use_duts=None, outpu
         i = 0  # counting number of progressed DUTs, needed for progressbar
         for node in in_file_h5.root:  # loop through all DUTs in track table
             if node.name in dut_index:  # only store track slopes of selected DUTs
-                slopes.update({node.name: [node[::100000]['slope_0'],
-                                           node[::100000]['slope_1']]})
+                slopes.update({node.name: [node[::10]['slope_0'],
+                                           node[::10]['slope_1']]})
                 i = i + 1
                 progress_bar.update(i)
         progress_bar.finish()
 
     direction = ['x', 'y', 'z']
-    result = np.zeros(shape=(6,), dtype=[('mean_slope_0', np.float), ('mean_slope_1', np.float), ('sigma_slope_0', np.float), ('sigma_slope_1', np.float)])
+    result = np.zeros(shape=(n_duts,), dtype=[('mean_slope_0', np.float), ('mean_slope_1', np.float), ('sigma_slope_0', np.float), ('sigma_slope_1', np.float)])
 
     logging.info('=== Plot track angles ===')
 
@@ -923,7 +922,7 @@ def track_angle(input_tracks_file, output_track_angle_file, use_duts=None, outpu
 
                 plt.title('Angular Distribution of Fitted Tracks for %s' % key)
                 plt.ylabel('#')
-                plt.xlabel('Track angle in %s / rad' % direction[i])
+                plt.xlabel('Track angle in %s / rad' % direction[j])
                 plt.legend(loc='best', fancybox=True, frameon=True)
 
                 output_fig.savefig()
