@@ -53,3 +53,7 @@ data_clusterizer.cpp
 testbeam_analysis/examples/data/*.h5
 # Temp files
 tmp*.*
+# Downloaded data files
+fixtures
+testbeam_analysis/testing/simulation
+testbeam_analysis/testing/examples

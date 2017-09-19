@@ -10,11 +10,7 @@ import numpy as np
 from testbeam_analysis.cpp import data_struct
 from testbeam_analysis.tools import analysis_utils, test_tools
 
-# Get package path
-testing_path = os.path.dirname(__file__)  # Get the absoulte path of the online_monitor installation
-
-# Set the converter script path
-tests_data_folder = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(testing_path)) + r'/testing/fixtures/analysis_utils//'))
+testing_path = os.path.dirname(__file__)
 
 
 class TestAnalysisUtils(unittest.TestCase):
@@ -119,7 +115,9 @@ class TestAnalysisUtils(unittest.TestCase):
         self.assertTrue(exception_ok & np.all(array == array_fast))
 
     def test_3d_index_histograming(self):  # check compiled hist_3D_index function
-        with tb.open_file(os.path.join(tests_data_folder, 'hist_data.h5'), mode="r") as in_file_h5:
+        with tb.open_file(analysis_utils.get_data('fixtures/analysis_utils/hist_data.h5',
+                                                  output=os.path.join(testing_path, 'fixtures/analysis_utils/hist_data.h5')),
+                          mode="r") as in_file_h5:
             xyz = in_file_h5.root.HistDataXYZ[:]
             x, y, z = xyz[0], xyz[1], xyz[2]
             shape = (100, 100, 100)

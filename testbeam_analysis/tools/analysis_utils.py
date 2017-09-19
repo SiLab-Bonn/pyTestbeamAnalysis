@@ -3,6 +3,10 @@
 from __future__ import division
 
 import logging
+import os
+import errno
+import requests
+import progressbar
 import numpy as np
 import numexpr as ne
 import tables as tb
@@ -15,6 +19,9 @@ from scipy.integrate import quad
 from testbeam_analysis import analysis_functions
 import testbeam_analysis.tools.plot_utils
 from testbeam_analysis.cpp import data_struct
+
+# A public secret representing public, read only owncloud folder
+SCIBO_PUBLIC_FOLDER = 'NzfAx2zAQll5YXB'
 
 
 @njit
@@ -125,6 +132,43 @@ def correlate_cluster_on_event_number(data_1, data_2, column_corr_hist, row_corr
                 row_corr_hist[row_index_dut_2, row_index_dut_1] += 1
             else:
                 break
+
+
+@njit
+def correlate_hits_on_event_range(hits, column_corr_hist, row_corr_hist,
+                                  event_range):
+    """Correlating the hit indices of different events in a certain range.
+    For unambiguous event building no correlation should be seen.
+
+
+    Parameters
+    ----------
+    hits: np.recarray
+        Hit array. Must have event_number / column / row columns.
+    column_corr_hist, row_corr_hist: np.array
+        2D correlation array containing the correlation data. Has to be of
+        sufficient size.
+    event_range : integer
+        The number of events to use for correlation
+        E.g.: event_range = 2 correlates to predecessing event hits.
+    """
+    index_2 = 0
+
+    # Loop over hits, outer loop
+    for index in range(hits.shape[0]):
+
+        hit = hits[index]
+        event = hit['event_number']
+
+        # Max event of inner loop
+        max_event = event - event_range
+
+        # Catch up with outer loop
+        while index_2 < index and hits[index_2]['event_number'] <= max_event:
+            other_hit = hits[index_2]
+            column_corr_hist[other_hit['column'] - 1, hit['column'] - 1] += 1
+            row_corr_hist[other_hit['row'] - 1, hit['row'] - 1] += 1
+            index_2 += 1
 
 
 def in1d_events(ar1, ar2):
@@ -916,3 +960,64 @@ def hough_transform(img, theta_res=1.0, rho_res=1.0, return_edges=False):
         return accumulator, thetas, rhos, theta_edges, rho_edges  # return histogram, bin centers, edges
     else:
         return accumulator, thetas, rhos  # return histogram and bin centers
+
+
+def get_data(path, output=None, fail_on_overwrite=False):
+    ''' Downloads data (eg. for examples, fixtures).
+    
+        Uses data in a public scibo folder. If you want
+        write access contact the maintainer.
+        
+        Parameters
+        ----------
+        path : string
+            File path with name. Location on online folder.
+        output : string, None
+            File path with name. Location where to store data.
+            If None the path variable path is used.
+        fail_on_overwrite : Bool
+            If files exist already the download is skipped.
+            If fail_on_overwrite this raises a RuntimeError.
+    '''
+    def download_scibo(public_secret, path, filename):
+        folder = os.path.dirname(path)
+        name = os.path.basename(path)
+
+        url = "https://uni-bonn.sciebo.de/index.php/s/"
+        url += public_secret + '/download?path=%2F'
+        url += folder + '&files='
+        url += name
+
+        logging.info('Downloading %s' % name)
+
+        r = requests.get(url, stream=True)
+        file_size = int(r.headers['Content-Length'])
+        logging.info('Downloading %s', name)
+        with open(filename, 'wb') as f:
+            num_bars = file_size / (32 * 1024)
+            bar = progressbar.ProgressBar(maxval=num_bars).start()
+            for i, chunk in enumerate(r.iter_content(32 * 1024)):
+                f.write(chunk)
+                bar.update(i)
+
+    if not output:
+        output = os.path.basename(path)
+        output_path = os.path.dirname(os.path.realpath(path))
+    else:
+        output_path = os.path.dirname(os.path.realpath(output))
+
+    if not os.path.isfile(os.path.join(output_path, output)):
+        # Create output folder
+        if not os.path.exists(output_path):
+            try:
+                os.makedirs(output_path)
+            except OSError as exc:  # Guard against race condition
+                if exc.errno != errno.EEXIST:
+                    raise
+        download_scibo(public_secret=SCIBO_PUBLIC_FOLDER,
+                       path=path,
+                       filename=os.path.join(output_path, output))
+    elif fail_on_overwrite:
+        raise RuntimeError('The files %s exists already', output)
+    
+    return os.path.join(output_path, output)
