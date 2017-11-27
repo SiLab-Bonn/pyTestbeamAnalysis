@@ -454,7 +454,7 @@
             <span class="n">fit_background</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="k">if</span> <span class="n">plot</span> <span class="ow">is</span> <span class="kc">True</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">gui</span><span class="p">:</span>
-        <span class="n">output_pdf</span> <span class="o">=</span> <span class="n">PdfPages</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">output_alignment_file</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;_prealigned.pdf&#39;</span><span class="p">)</span>
+        <span class="n">output_pdf</span> <span class="o">=</span> <span class="n">PdfPages</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">output_alignment_file</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;_prealigned.pdf&#39;</span><span class="p">,</span> <span class="n">keep_empty</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">output_pdf</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -872,7 +872,7 @@
 <span class="sd">        Filename of the input alignment file.</span>
 <span class="sd">    output_hit_file : string</span>
 <span class="sd">        Filename of the output hits file with hit data after alignment was applied.</span>
-<span class="sd">    inverse : boolean</span>
+<span class="sd">    inverse : bool</span>
 <span class="sd">        If True, apply the inverse alignment.</span>
 <span class="sd">    force_prealignment : bool</span>
 <span class="sd">        If True, use pre-alignment, even if alignment data is availale.</span>
@@ -1241,7 +1241,7 @@
     <span class="c1"># Plot final result</span>
     <span class="k">if</span> <span class="n">plot</span><span class="p">:</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;= Alignment step 7: Plot final result =&#39;</span><span class="p">)</span>
-        <span class="k">with</span> <span class="n">PdfPages</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">track_candidates_file</span><span class="p">)),</span> <span class="s1">&#39;Alignment_</span><span class="si">%d</span><span class="s1">.pdf&#39;</span> <span class="o">%</span> <span class="n">alignment_index</span><span class="p">))</span> <span class="k">as</span> <span class="n">output_pdf</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">PdfPages</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">track_candidates_file</span><span class="p">)),</span> <span class="s1">&#39;Alignment_</span><span class="si">%d</span><span class="s1">.pdf&#39;</span> <span class="o">%</span> <span class="n">alignment_index</span><span class="p">),</span> <span class="n">keep_empty</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">output_pdf</span><span class="p">:</span>
             <span class="c1"># Apply final alignment result</span>
             <span class="n">apply_alignment</span><span class="p">(</span><span class="n">input_hit_file</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">track_candidates_reduced</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;_not_aligned.h5&#39;</span><span class="p">,</span>
                             <span class="n">input_alignment_file</span><span class="o">=</span><span class="n">alignment_file</span><span class="p">,</span>

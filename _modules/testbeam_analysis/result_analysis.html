@@ -181,7 +181,7 @@
 <span class="kn">from</span> <span class="nn">testbeam_analysis.tools</span> <span class="k">import</span> <span class="n">analysis_utils</span>
 
 
-<div class="viewcode-block" id="calculate_residuals"><a class="viewcode-back" href="../../result_analysis.html#testbeam_analysis.result_analysis.calculate_residuals">[docs]</a><span class="k">def</span> <span class="nf">calculate_residuals</span><span class="p">(</span><span class="n">input_tracks_file</span><span class="p">,</span> <span class="n">input_alignment_file</span><span class="p">,</span> <span class="n">n_pixels</span><span class="p">,</span> <span class="n">pixel_size</span><span class="p">,</span> <span class="n">output_residuals_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dut_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_duts</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_chi2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nbins_per_pixel</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">npixels_per_bin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force_prealignment</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_fit_limits</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cluster_size_selection</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gui</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">chunk_size</span><span class="o">=</span><span class="mi">1000000</span><span class="p">):</span>
+<div class="viewcode-block" id="calculate_residuals"><a class="viewcode-back" href="../../result_analysis.html#testbeam_analysis.result_analysis.calculate_residuals">[docs]</a><span class="k">def</span> <span class="nf">calculate_residuals</span><span class="p">(</span><span class="n">input_tracks_file</span><span class="p">,</span> <span class="n">input_alignment_file</span><span class="p">,</span> <span class="n">n_pixels</span><span class="p">,</span> <span class="n">pixel_size</span><span class="p">,</span> <span class="n">output_residuals_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dut_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_duts</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_chi2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nbins_per_pixel</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">npixels_per_bin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force_prealignment</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_fit_limits</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cluster_size_selection</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">gui</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">chunk_size</span><span class="o">=</span><span class="mi">1000000</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;Takes the tracks and calculates residuals for selected DUTs in col, row direction.</span>
 
 <span class="sd">    Parameters</span>
@@ -210,16 +210,16 @@
 <span class="sd">        Number of bins per pixel along the residual axis. Number is a positive integer or None to automatically set the binning.</span>
 <span class="sd">    npixels_per_bin : int</span>
 <span class="sd">        Number of pixels per bin along the position axis. Number is a positive integer or None to automatically set the binning.</span>
-<span class="sd">    force_prealignment : boolean</span>
+<span class="sd">    force_prealignment : bool</span>
 <span class="sd">        Take the prealignment, although if a coarse alignment is availale.</span>
-<span class="sd">    plot : bool</span>
-<span class="sd">        If True, create additional output plots.</span>
 <span class="sd">    cluster_size_selection : uint</span>
 <span class="sd">        Select which cluster sizes should be included for residual calculation. If None all cluster sizes are taken.</span>
+<span class="sd">    plot : bool</span>
+<span class="sd">        If True, create additional output plots.</span>
+<span class="sd">    gui : bool</span>
+<span class="sd">        If True, use GUI for plotting.</span>
 <span class="sd">    chunk_size : int</span>
 <span class="sd">        Chunk size of the data when reading from file.</span>
-<span class="sd">    gui : bool</span>
-<span class="sd">        If True, this function is excecuted from GUI and returns figures</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;=== Calculating residuals ===&#39;</span><span class="p">)</span>
 
@@ -866,7 +866,7 @@
 <span class="sd">    show_inefficient_events : bool</span>
 <span class="sd">        Whether to log inefficient events</span>
 <span class="sd">    gui : bool</span>
-<span class="sd">        If True, this function is excecuted from GUI and returns figures</span>
+<span class="sd">        If True, use GUI for plotting.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;=== Calculating efficiency ===&#39;</span><span class="p">)</span>
 
@@ -1102,7 +1102,7 @@
 <span class="sd">        The DUTs to calculate purity for. If None all duts are used.</span>
 <span class="sd">    max_chi2 : int</span>
 <span class="sd">        Only use track with a chi2 &lt;= max_chi2.</span>
-<span class="sd">    force_prealignment : boolean</span>
+<span class="sd">    force_prealignment : bool</span>
 <span class="sd">        Take the prealignment, although if a coarse alignment is availale.</span>
 <span class="sd">    cut_distance : int</span>
 <span class="sd">        Hit - track intersection &lt;= cut_distance = pure hit (hit assigned to track).</span>
@@ -1122,7 +1122,7 @@
         <span class="n">output_purity_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">input_tracks_file</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;_purity.h5&#39;</span>
 
     <span class="k">if</span> <span class="n">plot</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
-        <span class="n">output_pdf</span> <span class="o">=</span> <span class="n">PdfPages</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">output_purity_file</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.pdf&#39;</span><span class="p">)</span>
+        <span class="n">output_pdf</span> <span class="o">=</span> <span class="n">PdfPages</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">output_purity_file</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.pdf&#39;</span><span class="p">,</span> <span class="n">keep_empty</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">output_pdf</span> <span class="o">=</span> <span class="kc">None</span>
 
