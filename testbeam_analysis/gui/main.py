@@ -269,7 +269,7 @@ class AnalysisWindow(QtWidgets.QMainWindow):
 
     def connect_tabs(self, tabs=None):
         """
-        Connect statusMessage and proceedAnalysis signal of all tabs
+        Connect statusMessage and analysisFinished signal of all tabs
         """
 
         if tabs is None:
@@ -283,34 +283,34 @@ class AnalysisWindow(QtWidgets.QMainWindow):
         for name in tab_list:
             try:
                 if name == 'Files':
-                    for x in [lambda: self.update_tabs(tabs='Setup'),
-                              lambda: self.tw['Setup'].input_data(self.tw['Files'].data),
+                    for x in [lambda _, tabs_next: self.update_tabs(tabs=tabs_next),
+                              lambda tab_done, tabs_next: self.tw[tabs_next[0]].input_data(self.tw[tab_done].data),
                               lambda: self.tabs.setCurrentIndex(self.tabs.currentIndex() + 1)]:
-                        self.tw[name].proceedAnalysis.connect(x)
+                        self.tw[name].analysisFinished.connect(x)
                     self.tw[name].statusMessage.connect(lambda message: self.handle_messages(message, 4000))
 
                 if name == 'Setup':
                     msg_0 = 'Run consecutive analysis with default options without user interaction'
                     msg_1 = 'Go to currently running or next to be running analysis tab'
-                    for xx in [lambda: self.update_tabs(data=self.tw['Setup'].data, skip='Setup'),
+                    for xx in [lambda tab_done, _: self.update_tabs(data=self.tw[tab_done].data, skip=tab_done),
                                lambda: self.appearance_menu.actions()[1].setEnabled(True),
                                lambda: self.appearance_menu.actions()[1].setToolTip(msg_1),
                                lambda: self.tabs.setCurrentIndex(self.tabs.currentIndex() + 1),
                                lambda: self.run_menu.actions()[0].setEnabled(True),  # Enable consecutive analysis
                                lambda: self.run_menu.actions()[0].setToolTip(msg_0)]:
-                        self.tw[name].proceedAnalysis.connect(xx)
+                        self.tw[name].analysisFinished.connect(xx)
                     self.tw[name].statusMessage.connect(lambda message: self.handle_messages(message, 4000))
 
                 if name == 'Noisy Pixel':
-                    self.tw[name].proceedAnalysis.connect(lambda: self.update_tabs(tabs='Clustering'))
+                    self.tw[name].analysisFinished.connect(lambda _, tabs_next: self.update_tabs(tabs=tabs_next))
 
                 if name == 'Alignment':
                     for xxx in [lambda: self.update_tabs(data={'skip_alignment': True},
                                                          tabs=['Track fitting', 'Residuals', 'Efficiency'])]:
                         self.tw[name].skipAlignment.connect(xxx)
 
-                self.tw[name].proceedAnalysis.connect(lambda tab_names: self.handle_tabs(tabs=tab_names))
-                self.tw[name].proceedAnalysis.connect(lambda tab_names: self.tab_completed(tab_names))
+                self.tw[name].analysisFinished.connect(lambda _, tabs_next: self.handle_tabs(tabs=tabs_next))
+                self.tw[name].analysisFinished.connect(lambda tab_done, _: self.tab_completed(tab_done))
                 self.tw[name].rerunSignal.connect(lambda tab: self.rerun_tab(tab=tab))
                 self.tw[name].exceptionSignal.connect(lambda e, trc_bck, tab, cause: self.handle_exceptions(exception=e,
                                                                                                             trace_back=trc_bck,
@@ -462,31 +462,17 @@ class AnalysisWindow(QtWidgets.QMainWindow):
         # Connect updated tabs
         self.connect_tabs(update_tabs)  # tabs
 
-    def tab_completed(self, tabs):
-
-        tab = None
-
-        # Sender is the one completed so only first dut in tabs matters
-        if isinstance(tabs, list):
-
-            sorted_tabs = {}
-            for dut in tabs:
-                if dut in self.tab_order:
-                    sorted_tabs[self.tab_order.index(dut)] = dut
-
-            if sorted_tabs:
-                tab = sorted_tabs[min(sorted_tabs.iterkeys())]
-
-        elif isinstance(tabs, unicode):
-            tab = tabs
+    def tab_completed(self, tab):
+        """
+        Sets the tabs icon of name tab to visualize tab is complete
+        :param tab: str or unicode name of tab that was completed
+        """
 
         if tab in self.tab_order:
-            # Set icon for sender which is the one before tab
-            self.tabs.setTabIcon(self.tab_order.index(tab) - 1, self.icon_complete)
+            self.tabs.setTabIcon(self.tab_order.index(tab), self.icon_complete)
 
         else:
-            # Set icon for last tab
-            self.tabs.setTabIcon(len(self.tab_order) - 1, self.icon_complete)
+            raise ValueError('%s not in %s' % (tab, ', '.join(self.tab_order)))
 
     def global_settings(self):
         """
@@ -569,10 +555,12 @@ class AnalysisWindow(QtWidgets.QMainWindow):
                                                    QtWidgets.QMessageBox.Cancel)
 
         if reply == QtWidgets.QMessageBox.Yes:
-            for tab_ in self.tab_order:
-                if self.tab_order.index(tab_) >= self.tab_order.index(tab):
-                    if tab_ != tab:
-                        self.tabs.setTabEnabled(self.tab_order.index(tab_), False)
+            for tab_ in self.tab_order[self.tab_order.index(tab):]:
+                if tab_ != tab:
+                    self.tabs.setTabEnabled(self.tab_order.index(tab_), False)
+                if tab_ == 'Alignment':
+                    self.update_tabs(data={'skip_alignment': False}, tabs=tab_, force=True)
+                else:
                     self.update_tabs(tabs=tab_, force=True)
         else:
             pass
@@ -631,7 +619,7 @@ class AnalysisWindow(QtWidgets.QMainWindow):
             if tab is None and not interrupt:
                 return
 
-            # Get following analysis tabs name
+            # Get subsequent analysis tabs name
             tab_name = self.tab_order[self.tab_order.index(tab) + 1] if tab in self.tab_order[:-1] else 'Last'
 
             # If interrupt btn was clicked set flag
@@ -666,7 +654,8 @@ class AnalysisWindow(QtWidgets.QMainWindow):
                                     # Enable container of following tabs
                                     self.tw[tab_].container.setDisabled(False)
 
-                            except (AttributeError, RuntimeError):
+                            # ok button has been deleted or no connection made
+                            except (AttributeError, RuntimeError, TypeError):
                                 pass
 
                         # Enable consecutive analysis again
@@ -757,30 +746,26 @@ class AnalysisWindow(QtWidgets.QMainWindow):
 
                 # No plotting for AlignmentTab so far, manually emit signal
                 if tab == 'Alignment':
-                    self.tw[tab].proceedAnalysis.connect(
-                        lambda: self.tw['Alignment'].plottingFinished.emit(self.tw['Alignment'].name))
+                    self.tw[tab].analysisFinished.connect(
+                        lambda tab_done, _: self.tw[tab_done].plottingFinished.emit(tab_done))
 
                     # Alignment updates the tabs below if skipped, need to reconnect
-                    for x in [lambda: self.tw['Track fitting'].plottingFinished.connect(lambda f: handle_rca(f)),
-                              lambda: self.tw['Residuals'].plottingFinished.connect(lambda f: handle_rca(f)),
-                              lambda: self.tw['Efficiency'].plottingFinished.connect(lambda f: handle_rca(f)),
-                              lambda: self.tw['Track fitting'].btn_ok.setDisabled(True),
-                              lambda: self.tw['Residuals'].btn_ok.setDisabled(True),
-                              lambda: self.tw['Efficiency'].btn_ok.setDisabled(True),
-                              lambda: self.tw['Track fitting'].container.setDisabled(True),
-                              lambda: self.tw['Residuals'].container.setDisabled(True),
-                              lambda: self.tw['Efficiency'].container.setDisabled(True)]:
-                        self.tw[tab].skipAlignment.connect(x)
+                    for t in ['Track fitting', 'Residuals', 'Efficiency']:
+                        for x in [lambda: self.tw[t].plottingFinished.connect(lambda f: handle_rca(f)),
+                                  lambda: self.tw[t].btn_ok.setDisabled(True),
+                                  lambda: self.tw[t].container.setDisabled(True)]:
+                            self.tw[tab].skipAlignment.connect(x)
 
                 # Noisy Pixel analysis updates Clustering tab which thus needs to be reconnected to consecutive analysis
                 if tab == 'Noisy Pixel':
-                    self.tw[tab].proceedAnalysis.connect(
+                    self.tw[tab].analysisFinished.connect(
                         lambda: self.tw['Clustering'].plottingFinished.connect(lambda finished_tab: handle_rca(finished_tab)))
 
                 # Check whether or not alignment is skipped
                 if tab == 'Track finding' and self.options['skip_alignment']:
                     for x in [lambda: self.tw['Alignment'].skipAlignment.emit(),
-                              lambda: self.tw['Alignment'].proceedAnalysis.emit(self.tw['Alignment'].tl)]:
+                              lambda: self.tw['Alignment'].analysisFinished.emit(self.tw['Alignment'].name,
+                                                                                 self.tw['Alignment'].tab_list)]:
                         self.tw[tab].plottingFinished.connect(x)
 
                 else:
@@ -857,6 +842,7 @@ class AnalysisWindow(QtWidgets.QMainWindow):
     def remove_widget(self, widget, layout):
         """
         Removes a widget with all its child widgets from layout
+
         :param widget: QtWidget.QWidget
         :param layout: QtWidget.QLayout
         """

@@ -8,8 +8,8 @@ class SetupTab(QtWidgets.QWidget):
     Implements the tab content for handling the setup of the detectors and their properties
     """
 
-    statusMessage = QtCore.pyqtSignal('QString')
-    proceedAnalysis = QtCore.pyqtSignal(list)
+    statusMessage = QtCore.pyqtSignal(str)
+    analysisFinished = QtCore.pyqtSignal(str, list)
 
     def __init__(self, parent=None, input_files=None, dut_names=None):
         super(SetupTab, self).__init__(parent)
@@ -20,7 +20,7 @@ class SetupTab(QtWidgets.QWidget):
         # Tab widgets
         self.tw = {}
 
-        # Make list of tabs that will be enabled after proceedAnalysis signal of this class
+        # Make list of tabs that will be enabled after analysisFinished signal of this class
         self.tab_list = ['Noisy Pixel']
 
         # Make tuple of properties of each dut
@@ -584,7 +584,7 @@ class SetupTab(QtWidgets.QWidget):
                 self.data['scatter_planes'] = self.scatter_data
 
             self.isFinished = True
-            self.proceedAnalysis.emit(self.tab_list)
+            self.analysisFinished.emit('Setup', self.tab_list)
             self._disable_tabs()
 
         # Read only dut properties of custom dut type or remove/overwrite predefined type

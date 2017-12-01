@@ -19,9 +19,9 @@ from testbeam_analysis.tools.plot_utils import plot_masked_pixels, plot_cluster_
 
 
 class NoisyPixelsTab(ParallelAnalysisWidget):
-    """ Implements the noisy pixel analysis gui"""
-
-    proceedAnalysis = QtCore.pyqtSignal(list)
+    """
+    Implements the noisy pixel analysis gui
+    """
 
     def __init__(self, parent, setup, options, name, tab_list):
         super(NoisyPixelsTab, self).__init__(parent, setup, options, name, tab_list)
@@ -51,14 +51,16 @@ class NoisyPixelsTab(ParallelAnalysisWidget):
                                  default_value=setup['dut_names'],
                                  func=generate_pixel_mask,
                                  fixed=False)
+        self.add_parallel_option(option='filter_size',
+                                 dtype='int',
+                                 func=generate_pixel_mask)
 
-        for x in [lambda _tab_list: self.proceedAnalysis.emit(_tab_list),
-                  lambda: self._connect_vitables(files=self.output_files),
+        for x in [lambda: self._connect_vitables(files=self.output_files),
                   lambda: self.plot(input_files=self.output_files,
                                     plot_func=plot_masked_pixels,
                                     dut_names=self.duts,
                                     gui=True)]:
-            self.parallelAnalysisDone.connect(x)
+            self.analysisFinished.connect(x)
 
         # Add checkbox to each tab to enable skipping noisy pixel removal individually
         self.check_boxes = {}
@@ -83,7 +85,7 @@ class NoisyPixelsTab(ParallelAnalysisWidget):
             self._call_parallel_funcs()
         else:
             self.btn_ok.setDisabled(True)
-            self.proceedAnalysis.emit(self.tab_list)
+            self.analysisFinished.emit(self.name, self.tab_list)
             self.plottingFinished.emit(self.name)
 
     def check_skip(self):
@@ -110,14 +112,14 @@ class NoisyPixelsTab(ParallelAnalysisWidget):
 
 
 class ClusterPixelsTab(ParallelAnalysisWidget):
-    ''' Implements the pixel clustering gui'''
-
-    proceedAnalysis = QtCore.pyqtSignal(list)
+    """
+    Implements the pixel clustering gui
+    """
 
     def __init__(self, parent, setup, options, name, tab_list):
         super(ClusterPixelsTab, self).__init__(parent, setup, options, name, tab_list)
 
-        output_files = [os.path.join(options['output_path'], dut + options['cluster_suffix']) for dut in setup['dut_names']]
+        self.output_files = [os.path.join(options['output_path'], dut + options['cluster_suffix']) for dut in setup['dut_names']]
 
         self.add_parallel_function(func=cluster_hits)
 
@@ -127,7 +129,7 @@ class ClusterPixelsTab(ParallelAnalysisWidget):
                                  fixed=True)
 
         self.add_parallel_option(option='output_cluster_file',
-                                 default_value=output_files,
+                                 default_value=self.output_files,
                                  func=cluster_hits,
                                  fixed=True)
 
@@ -146,24 +148,21 @@ class ClusterPixelsTab(ParallelAnalysisWidget):
                 else:
                     pass
 
-        for x in [lambda _tab_list: self.proceedAnalysis.emit(_tab_list),
-                  lambda: self._connect_vitables(files=output_files),
-                  lambda: self.plot(input_files=output_files,
+        for x in [lambda: self._connect_vitables(files=self.output_files),
+                  lambda: self.plot(input_files=self.output_files,
                                     plot_func=plot_cluster_size,
                                     gui=True)]:
-            self.parallelAnalysisDone.connect(x)
+            self.analysisFinished.connect(x)
 
 
 class PrealignmentTab(AnalysisWidget):
-    ''' Implements the prealignment gui. Prealignment uses
-        4 functions of test beam analysis:
+    """
+    Implements the prealignment gui. Prealignment uses 4 functions of test beam analysis:
         - correlate cluster
         - fit correlations (prealignment)
         - merge cluster data of duts
         - apply prealignment
-    '''
-
-    proceedAnalysis = QtCore.pyqtSignal(list)
+    """
 
     def __init__(self, parent, setup, options, name, tab_list):
         super(PrealignmentTab, self).__init__(parent, setup, options, name, tab_list)
@@ -239,10 +238,9 @@ class PrealignmentTab(AnalysisWidget):
                         default_value=True, fixed=True)
         self.add_option(option='no_z', func=apply_alignment, fixed=True)
 
-        for x in [lambda _tab_list: self.proceedAnalysis.emit(_tab_list),
-                  lambda: self._connect_vitables(files=self.output_files.values()),
+        for x in [lambda: self._connect_vitables(files=self.output_files.values()),
                   lambda: self._make_plots()]:  # kwargs for correlation
-            self.analysisDone.connect(x)
+            self.analysisFinished.connect(x)
 
     def _make_plots(self):
 
@@ -257,14 +255,14 @@ class PrealignmentTab(AnalysisWidget):
 
 
 class TrackFindingTab(AnalysisWidget):
-    ''' Implements the track finding gui'''
-
-    proceedAnalysis = QtCore.pyqtSignal(list)
+    """
+    Implements the track finding gui
+    """
 
     def __init__(self, parent, setup, options, name, tab_list):
         super(TrackFindingTab, self).__init__(parent, setup, options, name, tab_list)
 
-        output_file = os.path.join(options['output_path'], 'TrackCandidates_prealignment.h5')
+        self.output_files = os.path.join(options['output_path'], 'TrackCandidates_prealignment.h5')
 
         self.add_function(func=find_tracks)
 
@@ -279,7 +277,7 @@ class TrackFindingTab(AnalysisWidget):
                         fixed=True)
 
         self.add_option(option='output_track_candidates_file',
-                        default_value=output_file,
+                        default_value=self.output_files,
                         func=find_tracks,
                         fixed=True)
 
@@ -288,27 +286,22 @@ class TrackFindingTab(AnalysisWidget):
                         func=find_tracks,
                         fixed=False)
 
-        for x in [lambda _tab_list: self.proceedAnalysis.emit(_tab_list),
-                  lambda: self._connect_vitables(files=output_file),
-                  lambda: self.plot(input_file=output_file, plot_func=plot_tracks_per_event, gui=True)]:
-            self.analysisDone.connect(x)
+        for x in [lambda: self._connect_vitables(files=self.output_files),
+                  lambda: self.plot(input_file=self.output_files, plot_func=plot_tracks_per_event, gui=True)]:
+            self.analysisFinished.connect(x)
 
 
 class AlignmentTab(AnalysisWidget):
-    ''' Implements the alignment gui'''
+    """
+    Implements the alignment gui
+    """
 
-    proceedAnalysis = QtCore.pyqtSignal(list)
     skipAlignment = QtCore.pyqtSignal()
 
     def __init__(self, parent, setup, options, name, tab_list):
         super(AlignmentTab, self).__init__(parent, setup, options, name, tab_list)
 
-        if isinstance(tab_list, list):
-            self.tl = tab_list
-        else:
-            self.tl = [tab_list]
-
-        output_file = os.path.join(options['output_path'], 'Tracklets.h5')
+        self.output_files = os.path.join(options['output_path'], 'Tracklets.h5')
 
         # define default matrix for iterable of iterable dtype with tr(def_matrix) = 0
         def_matrix = [[i if i != j else None for i in range(setup['n_duts'])] for j in range(setup['n_duts'])]
@@ -365,7 +358,7 @@ class AlignmentTab(AnalysisWidget):
                         fixed=True)
 
         self.add_option(option='output_hit_file',
-                        default_value=output_file,
+                        default_value=self.output_files,
                         func=apply_alignment,
                         fixed=True)
 
@@ -374,10 +367,9 @@ class AlignmentTab(AnalysisWidget):
                         func=apply_alignment,
                         optional=True)
 
-        for x in [lambda _tab_list: self.proceedAnalysis.emit(_tab_list),
-                  lambda: self._connect_vitables(files=output_file),
+        for x in [lambda: self._connect_vitables(files=self.output_files),
                   lambda: self.btn_skip.deleteLater()]:
-            self.analysisDone.connect(x)
+            self.analysisFinished.connect(x)
 
         self.btn_skip = QtWidgets.QPushButton('Skip')
         self.btn_skip.setToolTip('Skip alignment and use pre-alignment for further analysis')
@@ -406,24 +398,24 @@ class AlignmentTab(AnalysisWidget):
 
             if ask:
                 self.skipAlignment.emit()
-                self.proceedAnalysis.emit(self.tl)
+                self.analysisFinished.emit(self.name, self.tab_list)
         else:
             pass
 
 
 class TrackFittingTab(AnalysisWidget):
-    ''' Implements the track fitting gui'''
-
-    proceedAnalysis = QtCore.pyqtSignal(list)
+    """
+    Implements the track fitting gui
+    """
 
     def __init__(self, parent, setup, options, name, tab_list):
         super(TrackFittingTab, self).__init__(parent, setup, options, name, tab_list)
 
         if options['skip_alignment']:
             input_tracks = os.path.join(options['output_path'], 'TrackCandidates_prealignment.h5')
-            output_file = os.path.join(options['output_path'], 'Tracks_prealigned.h5')
+            self.output_files = os.path.join(options['output_path'], 'Tracks_prealigned.h5')
         else:
-            output_file = os.path.join(options['output_path'], 'Tracks_aligned.h5')
+            self.output_files = os.path.join(options['output_path'], 'Tracks_aligned.h5')
 
             self.add_function(func=find_tracks)
 
@@ -468,7 +460,7 @@ class TrackFittingTab(AnalysisWidget):
                         fixed=True)
 
         self.add_option(option='output_tracks_file',
-                        default_value=output_file,
+                        default_value=self.output_files,
                         func=fit_tracks,
                         fixed=True)
 
@@ -510,8 +502,8 @@ class TrackFittingTab(AnalysisWidget):
                             fixed=True)
 
         # Determine the order of plotting tabs with OrderedDict
-        multiple_plotting_data = OrderedDict([('Tracks', output_file), ('Tracks_per_event', output_file),
-                                              ('Track_density', output_file)])
+        multiple_plotting_data = OrderedDict([('Tracks', self.output_files), ('Tracks_per_event', self.output_files),
+                                              ('Track_density', self.output_files)])
 
         multiple_plotting_func = {'Tracks': plot_events, 'Tracks_per_event': plot_tracks_per_event,
                                   'Track_density': plot_track_density}
@@ -524,18 +516,17 @@ class TrackFittingTab(AnalysisWidget):
                                                       'max_chi2': 100000, 'gui': True},
                                     'Tracks_per_event': {'gui': True}}
 
-        for x in [lambda _tab_list: self.proceedAnalysis.emit(_tab_list),
-                  lambda: self._connect_vitables(files=output_file),
+        for x in [lambda: self._connect_vitables(files=self.output_files),
                   lambda: self.plot(input_file=multiple_plotting_data,
                                     plot_func=multiple_plotting_func,
                                     **multiple_plotting_kwargs)]:
-            self.analysisDone.connect(x)
+            self.analysisFinished.connect(x)
 
 
 class ResidualTab(AnalysisWidget):
-    ''' Implements the result analysis gui'''
-
-    proceedAnalysis = QtCore.pyqtSignal(list)
+    """
+    Implements the result analysis gui
+    """
 
     def __init__(self, parent, setup, options, name, tab_list):
         super(ResidualTab, self).__init__(parent, setup, options, name, tab_list)
@@ -547,7 +538,7 @@ class ResidualTab(AnalysisWidget):
 
         self.add_function(func=calculate_residuals)
 
-        output_file = os.path.join(options['output_path'], 'Residuals.h5')
+        self.output_files = os.path.join(options['output_path'], 'Residuals.h5')
 
         self.add_option(option='input_tracks_file',
                         default_value=input_tracks,
@@ -560,7 +551,7 @@ class ResidualTab(AnalysisWidget):
                         fixed=True)
 
         self.add_option(option='output_residuals_file',
-                        default_value=output_file,
+                        default_value=self.output_files,
                         func=calculate_residuals,
                         fixed=True)
 
@@ -579,21 +570,21 @@ class ResidualTab(AnalysisWidget):
                         func=calculate_residuals,
                         fixed=True)
 
-        for x in [lambda _tab_list: self.proceedAnalysis.emit(_tab_list),
-                  lambda: self._connect_vitables(files=output_file),
+        for x in [lambda: self._connect_vitables(files=self.output_files),
                   lambda: self._make_plots()]:
-            self.analysisDone.connect(x)
+            self.analysisFinished.connect(x)
 
     def _make_plots(self):
 
         input_files = OrderedDict()
         plot_func = {}
         figs = {}
+        ppd = int(len(self.return_values)/self.setup['n_duts'])  # plots per dut
 
         for i, dut in enumerate(self.setup['dut_names']):
             input_files[dut] = None
             plot_func[dut] = None
-            figs[dut] = self.return_values[16 * i: 16 * (i + 1)]  # 16 figures per DUT
+            figs[dut] = self.return_values[ppd * i: ppd * (i + 1)]  # 16 figures per DUT
 
         # gui=True not needed and not possible since no function is called whose args can be inspected.
         self.plot(input_file=input_files, plot_func=plot_func, figures=figs)
@@ -603,8 +594,6 @@ class EfficiencyTab(AnalysisWidget):
     """
     Implements the efficiency results tab
     """
-
-    proceedAnalysis = QtCore.pyqtSignal(list)
 
     def __init__(self, parent, setup, options, name, tab_list):
         super(EfficiencyTab, self).__init__(parent, setup, options, name, tab_list)
@@ -616,7 +605,7 @@ class EfficiencyTab(AnalysisWidget):
 
         self.add_function(func=calculate_efficiency)
 
-        output_file = os.path.join(options['output_path'], 'Efficiency.h5')
+        self.output_files = os.path.join(options['output_path'], 'Efficiency.h5')
 
         self.add_option(option='input_tracks_file',
                         default_value=input_tracks,
@@ -629,7 +618,7 @@ class EfficiencyTab(AnalysisWidget):
                         fixed=True)
 
         self.add_option(option='output_efficiency_file',
-                        default_value=output_file,
+                        default_value=self.output_files,
                         func=calculate_efficiency,
                         fixed=True)
 
@@ -660,22 +649,21 @@ class EfficiencyTab(AnalysisWidget):
                         func=calculate_efficiency,
                         fixed=True)
 
-        for x in [lambda _tab_list: self.proceedAnalysis.emit(_tab_list),
-                  lambda: self._connect_vitables(files=output_file),
+        for x in [lambda: self._connect_vitables(files=self.output_files),
                   lambda: self._make_plots()]:
-            self.analysisDone.connect(x)
+            self.analysisFinished.connect(x)
 
     def _make_plots(self):
 
         input_files = OrderedDict()
         plot_func = {}
         figs = {}
+        ppd = int(len(self.return_values)/self.setup['n_duts'])  # plots per dut
 
         for i, dut in enumerate(self.setup['dut_names']):
             input_files[dut] = None
             plot_func[dut] = None
-            figs[dut] = self.return_values[5 * i: 5 * (i + 1)]  # 5 figures per DUT
+            figs[dut] = self.return_values[ppd * i: ppd * (i + 1)]  # 5 figures per DUT
 
         # gui=True not needed and not possible since no function is called whose args can be inspected.
         self.plot(input_file=input_files, plot_func=plot_func, figures=figs)
-

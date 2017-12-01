@@ -14,9 +14,8 @@ class DataTab(QtWidgets.QWidget):
     Implements the tab content for data file handling
     """
 
-    statusMessage = QtCore.pyqtSignal('QString')
-    proceedAnalysis = QtCore.pyqtSignal('QString')
-#    newAnalysis = QtCore.pyqtSignal()
+    statusMessage = QtCore.pyqtSignal(str)
+    analysisFinished = QtCore.pyqtSignal(str, list)
 
     def __init__(self, parent=None):
         super(DataTab, self).__init__(parent)
@@ -192,7 +191,7 @@ class DataTab(QtWidgets.QWidget):
         self.data['dut_names'] = self._data_table.dut_names
         self.data['n_duts'] = len(self._data_table.dut_names)
 
-        self.proceedAnalysis.emit('Setup')
+        self.analysisFinished.emit('Files', ['Setup'])
 
     def _disable_tab(self):
 

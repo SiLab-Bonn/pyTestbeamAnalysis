@@ -8,7 +8,6 @@ import os
 import inspect
 import logging
 import math
-import traceback
 
 from subprocess import call
 from collections import OrderedDict, defaultdict
@@ -61,8 +60,9 @@ class AnalysisWidget(QtWidgets.QWidget):
     documentation from the function implementation automatically.
     """
 
-    # Signal emitted after all funcs are called
-    analysisDone = QtCore.pyqtSignal(list)
+    # Signal emitted after all funcs are called. First argument is the finished analysis step, second
+    # is a list of analysis steps to be enabled next
+    analysisFinished = QtCore.pyqtSignal(str, list)
 
     # Signal emitted if exceptions occur
     exceptionSignal = QtCore.pyqtSignal(Exception, str, str, str)
@@ -70,6 +70,7 @@ class AnalysisWidget(QtWidgets.QWidget):
     # Signal emitted when plotting is finished
     plottingFinished = QtCore.pyqtSignal(str)
 
+    # Signal emitted when user wants to re-run analysis of respective widget
     rerunSignal = QtCore.pyqtSignal(str)
 
     def __init__(self, parent, setup, options, name, tab_list=None):
@@ -92,7 +93,7 @@ class AnalysisWidget(QtWidgets.QWidget):
             self.tab_list = tab_list
         else:
             self.tab_list = [tab_list]
-        # Name of this analysis widget
+        # Name of the analysis step performed in this analysis widget
         self.name = name
         # Store state of analysis widget
         self.isFinished = False
@@ -126,7 +127,7 @@ class AnalysisWidget(QtWidgets.QWidget):
         self.btn_rerun.setVisible(False)
         icon_rerun = QtWidgets.qApp.style().standardIcon(QtWidgets.qApp.style().SP_BrowserReload)
         self.btn_rerun.setIcon(icon_rerun)
-        self.analysisDone.connect(lambda: self.btn_rerun.setVisible(True))
+        self.analysisFinished.connect(lambda: self.btn_rerun.setVisible(True))
         self.btn_ok = QtWidgets.QPushButton('Ok')
         self.btn_ok.clicked.connect(lambda: self._call_funcs())
         self.p_bar = AnalysisBar()
@@ -271,18 +272,14 @@ class AnalysisWidget(QtWidgets.QWidget):
 
         if not fixed:  # Option value can be changed
             try:
-                widget = self._select_widget(dtype, name, default_value,
-                                             optional, tooltip)
+                widget = self._select_widget(dtype, name, default_value, optional, tooltip)
             except NotImplementedError:
-                logging.warning('Cannot create option %s for dtype "%s" for function %s',
-                                option, dtype, func.__name__)
+                logging.warning('Cannot create option %s for dtype "%s" for function %s', option, dtype, func.__name__)
                 return
 
-            self._set_argument(
-                func, option, default_value if not optional else None)
+            self._set_argument(func, option, default_value if not optional else None)
             self.option_widgets[option] = widget
-            self.option_widgets[option].valueChanged.connect(
-                lambda value: self._set_argument(func, option, value))
+            self.option_widgets[option].valueChanged.connect(lambda value: self._set_argument(func, option, value))
 
             if optional:
                 self.opt_optional.addWidget(self.option_widgets[option])
@@ -377,8 +374,7 @@ class AnalysisWidget(QtWidgets.QWidget):
         # Add tooltip from function docstring
         doc = FunctionDoc(func)
         label_option = self.label_option.toolTip()
-        self.label_option.setToolTip(label_option +
-                                     '\n'.join(doc['Summary']))
+        self.label_option.setToolTip(label_option + '\n'.join(doc['Summary']))
         # Add function options to gui
         self.add_options_auto(func)
 
@@ -529,6 +525,10 @@ class AnalysisWidget(QtWidgets.QWidget):
         self.plt.addWidget(plot)
 
     def _plotting_finished(self):
+        """
+        Emits plottingFinished signal
+        """
+
         self.plottingFinished.emit(self.name)
         self.p_bar.setFinished()
 
@@ -545,9 +545,12 @@ class AnalysisWidget(QtWidgets.QWidget):
         self.exceptionSignal.emit(exception, trace_back, name, cause)
 
     def emit_analysis_done(self):
+        """
+        Set the status of the AnalysisWidget to finished and emit corresponding signal
+        """
 
         self.isFinished = True
-        self.analysisDone.emit(self.tab_list)
+        self.analysisFinished.emit(self.name, self.tab_list)
 
 
 class ParallelAnalysisWidget(QtWidgets.QWidget):
@@ -556,9 +559,17 @@ class ParallelAnalysisWidget(QtWidgets.QWidget):
     Creates UI with one tab widget per respective input file
     """
 
-    parallelAnalysisDone = QtCore.pyqtSignal(list)
+    # Signal emitted after all funcs are called. First argument is the finished analysis step, second
+    # is a list of analysis steps to be enabled next
+    analysisFinished = QtCore.pyqtSignal(str, list)
+
+    # Signal emitted if exceptions occur
     exceptionSignal = QtCore.pyqtSignal(Exception, str, str, str)
+
+    # Signal emitted when plotting is finished
     plottingFinished = QtCore.pyqtSignal(str)
+
+    # Signal emitted when user wants to re-run analysis of respective widget
     rerunSignal = QtCore.pyqtSignal(str)
 
     def __init__(self, parent, setup, options, name, tab_list=None):
@@ -577,8 +588,8 @@ class ParallelAnalysisWidget(QtWidgets.QWidget):
         self.btn_rerun.setVisible(False)
         icon_rerun = QtWidgets.qApp.style().standardIcon(QtWidgets.qApp.style().SP_BrowserReload)
         self.btn_rerun.setIcon(icon_rerun)
-        self.parallelAnalysisDone.connect(lambda: self.btn_rerun.setVisible(True))
-        self.parallelAnalysisDone.connect(lambda: self.handle_sub_layout(tab=self.tabs.currentIndex()))
+        self.analysisFinished.connect(lambda: self.btn_rerun.setVisible(True))
+        self.analysisFinished.connect(lambda: self.handle_sub_layout(tab=self.tabs.currentIndex()))
         self.btn_ok = QtWidgets.QPushButton('Ok')
         self.btn_ok.clicked.connect(lambda: self._call_parallel_funcs())
         self.p_bar = AnalysisBar()
@@ -620,7 +631,7 @@ class ParallelAnalysisWidget(QtWidgets.QWidget):
         self.vitables_thread = QtCore.QThread()  # no parent
         self.vitables_worker = None
 
-        # List in which DUTs are stored, COPY important
+        # List in which DUTs are stored, COPY important, will eventually be altered due to user
         self.duts = setup['dut_names'][:]
 
         # List of tabs which will be enabled after analysis
@@ -628,48 +639,58 @@ class ParallelAnalysisWidget(QtWidgets.QWidget):
             self.tab_list = tab_list
         else:
             self.tab_list = [tab_list]
-        # Name of this parallel analysis widget
+        # Name of analysis step performed in this parallel analysis widget
         self.name = name
 
         self._init_tabs()
         self.connect_tabs()
 
     def _init_tabs(self):
+        """
+        Initialises a tab per DUT for whose data the analysis is performed. Each tab is a AnalysisWidget instance
+        """
 
+        # Loop over number of DUTs and create tmp setup and options for each DUT
         for i in range(self.setup['n_duts']):
 
             tmp_setup = {}
             tmp_options = {}
 
+            # Fill setup for i_th DUT
             for s_key in self.setup.keys():
-
+                # Tuples and lists have DUT specific info; loop and assign the respective i_th entry to the tmp setup
                 if isinstance(self.setup[s_key], list) or isinstance(self.setup[s_key], tuple):
-                    if isinstance(self.setup[s_key][i], str):
-                        tmp_setup[s_key] = [self.setup[s_key][i]]  # FIXME: Does not work properly without list
-                    else:
-                        tmp_setup[s_key] = self.setup[s_key][i]
-                else:  # isinstance(self.setup[s_key], int) or isinstance(self.setup[s_key], str):
+                    tmp_setup[s_key] = self.setup[s_key][i]
+                # General info valid for all DUTs
+                else:
                     tmp_setup[s_key] = self.setup[s_key]
 
+            # Fill options for i_th DUT
             for o_key in self.options.keys():
-
+                # Tuples and lists have DUT specific info; loop and assign the respective i_th entry to the tmp options
                 if isinstance(self.options[o_key], list) or isinstance(self.options[o_key], tuple):
-                    if isinstance(self.options[o_key][i], str):
-                        tmp_options[o_key] = [self.options[o_key][i]]  # FIXME: Does not work properly without list
-                    else:
-                        tmp_options[o_key] = self.options[o_key][i]
-                else:  # isinstance(self.options[o_key], int) or isinstance(self.options[o_key], str):
+                    tmp_options[o_key] = self.options[o_key][i]
+                # General info valid for all DUTs
+                else:
                     tmp_options[o_key] = self.options[o_key]
 
+            # Create widget
             widget = AnalysisWidget(parent=self.tabs, setup=tmp_setup, options=tmp_options, name=self.name,
                                     tab_list=self.tab_list)
+
+            # Remove buttons and progressbar from AnalysisWidget instance; ParallelAnalysisWidget has one for all
             widget.btn_ok.deleteLater()
+            widget.btn_rerun.deleteLater()
             widget.p_bar.deleteLater()
 
+            # Add to tab widget
             self.tw[self.setup['dut_names'][i]] = widget
             self.tabs.addTab(self.tw[self.setup['dut_names'][i]], self.setup['dut_names'][i])
 
     def connect_tabs(self):
+        """
+        Make connections that handle the dynamic layout of the widget
+        """
 
         self.tabs.currentChanged.connect(lambda tab: self.handle_sub_layout(tab=tab))
 
@@ -678,35 +699,88 @@ class ParallelAnalysisWidget(QtWidgets.QWidget):
                 lambda: self.handle_sub_layout(tab=self.tabs.currentIndex()))
 
     def resizeEvent(self, QResizeEvent):
+        """
+        Handle layout of widgets when re-sized
+
+        :param QResizeEvent:
+        """
+
         self.handle_sub_layout(tab=self.tabs.currentIndex())
 
     def showEvent(self, QShowEvent):
+        """
+        Handle layout of widgets when shown (on start-up)
+
+        :param QShowEvent:
+        """
         self.handle_sub_layout(tab=self.tabs.currentIndex())
 
     def handle_sub_layout(self, tab):
+        """
+        Handles the layout of tab; sets sizes according to splitter of underlying AnalysisWidget in tab
 
+        :param tab: int position of tab in self.tabs whose layout is handled
+        """
+
+        # Offset in between buttons and progressbar
         offset = 10 if not self.btn_rerun.isVisible() else 5
+
+        # Widths of tab splitter widget
         sub_widths = self.tw[self.tabs.tabText(tab)].widget_splitter.sizes()
 
+        # Set sizes of buttons and progressbar
         self.btn_rerun.setFixedWidth(sub_widths[1] / 2 + offset)
         self.p_bar.setFixedWidth(sub_widths[0] + offset)
 
+        # Set size of ok button according to visibility of rerun button
         if not self.btn_rerun.isVisible():
             self.btn_ok.setFixedWidth(sub_widths[1] + offset)
         else:
             self.btn_ok.setFixedWidth(sub_widths[1] / 2 + offset)
 
     def add_parallel_function(self, func):
+        """
+        Adds function func to each tab
 
+        :param func: function to be added to the tab widgets (AnalysisWidget instances) in parallel
+        """
         for i in range(self.setup['n_duts']):
             self.tw[self.setup['dut_names'][i]].add_function(func=func)
 
-    def add_parallel_option(self, option, default_value, func, name=None, dtype=None, optional=None, fixed=False,
+    def add_parallel_option(self, option, func, default_value=None, name=None, dtype=None, optional=None, fixed=False,
                             tooltip=None):
 
+        """
+        Add an option to the gui of each tab to set function arguments in parallel
+
+        :param option: str
+            Function argument name
+        :param func: function
+            Function to be used for the option
+        :param dtype: str
+            Type string to select proper input method, if None determined from default parameter type
+        :param name: str
+            Name shown in gui
+        :param optional: bool
+            Show as optional option, If optional is not defined all parameters with default value
+            None are set as optional. The common behavior is that None deactivates a parameter
+        :param default_value : object
+            Default value for option
+        :param fixed : bool
+            Fix option value  default value
+        """
+
+        # Loop over DUTs
         for i in range(self.setup['n_duts']):
+
+            # Whether a specific option per DUT is added or a general option valid for all DUTs
+            if isinstance(default_value, list) or isinstance(default_value, tuple):
+                default_value_tmp = default_value[i]
+            else:
+                default_value_tmp = default_value
+
             self.tw[self.setup['dut_names'][i]].add_option(option=option, func=func, dtype=dtype, name=name,
-                                                           optional=optional, default_value=default_value[i],
+                                                           optional=optional, default_value=default_value_tmp,
                                                            fixed=fixed, tooltip=tooltip)
 
     def _call_parallel_funcs(self):
@@ -751,14 +825,20 @@ class ParallelAnalysisWidget(QtWidgets.QWidget):
         self.analysis_thread.start()
 
     def _quit_thread(self):
+        """
+        Increments the worker finished counter and finishes analysis_thread when all workers have finished
+        """
+
         self._n_workers_finished += 1
         if self._n_workers_finished == len(self.duts):
             self.analysis_thread.quit()
 
     def emit_parallel_analysis_done(self):
-
+        """
+        Set the status of the ParallelAnalysisWidget to finished and emit corresponding signal
+        """
         self.isFinished = True
-        self.parallelAnalysisDone.emit(self.tab_list)
+        self.analysisFinished.emit(self.name, self.tab_list)
 
     def _connect_vitables(self, files):
         """
@@ -820,24 +900,31 @@ class ParallelAnalysisWidget(QtWidgets.QWidget):
         else:
             names = self.duts
 
+        # Counter for plots
         self._n_plots_finished = 0
         self.p_bar.setBusy('Plotting')
 
+        # Make plot widget for each DUT
         for dut in names:
             plot = AnalysisPlotter(input_file=input_files[names.index(dut)], plot_func=plot_func,
                                    thread=self.plotting_thread, dut_name=dut, **kwargs)
             plot.finishedPlotting.connect(self._plotting_finished)
             plot.exceptionSignal.connect(lambda e, trc_bck: self.emit_exception(exception=e, trace_back=trc_bck,
                                                                                 name=self.name, cause='plotting'))
+            # If no thread is provided, plot instantly
             if not self.plotting_thread:
                 plot.plot()
 
             self.tw[dut].plt.addWidget(plot)
 
+        # If plotting thread is provided, start thread. Note that the plotting thread is quit and deleted automatically
         if self.plotting_thread:
             self.plotting_thread.start()
 
     def _plotting_finished(self):
+        """
+        Increments the plot counter and emits plottingFinished signal when counter reaches number of DUTs
+        """
         self._n_plots_finished += 1
         if self._n_plots_finished == len(self.duts):
             self.p_bar.setFinished()
