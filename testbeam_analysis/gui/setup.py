@@ -585,7 +585,7 @@ class SetupTab(QtWidgets.QWidget):
 
             self.isFinished = True
             self.analysisFinished.emit('Setup', self.tab_list)
-            self._disable_tabs()
+            self._disable_tab()
 
         # Read only dut properties of custom dut type or remove/overwrite predefined type
         else:
@@ -838,7 +838,7 @@ class SetupTab(QtWidgets.QWidget):
 
         self.statusMessage.emit(message)
 
-    def _disable_tabs(self):
+    def _disable_tab(self):
 
         for dut in self.tw.keys():
             self.tw[dut].setDisabled(True)

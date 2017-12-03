@@ -24,6 +24,9 @@ class DataTab(QtWidgets.QWidget):
         self.data = {}
         self.output_path = os.getcwd()
 
+        # Store state of DataTab
+        self.isFinished = False
+
         self._setup()
 
     def _setup(self):
@@ -104,7 +107,7 @@ class DataTab(QtWidgets.QWidget):
         self.btn_ok.setToolTip('Select data of DUTs')
 
         # Connect proceed button and inputFilesChanged signal
-        message_ok = "Configuration for %d DUT(s) saved"
+        message_ok = "Configuration for %d DUT(s) set."
         for x in [lambda: self._data_table.update_setup(),
                   lambda: self._update_data(),
                   lambda: self._disable_tab(),
@@ -191,6 +194,7 @@ class DataTab(QtWidgets.QWidget):
         self.data['dut_names'] = self._data_table.dut_names
         self.data['n_duts'] = len(self._data_table.dut_names)
 
+        self.isFinished = True
         self.analysisFinished.emit('Files', ['Setup'])
 
     def _disable_tab(self):
@@ -400,7 +404,7 @@ class DataTable(QtWidgets.QTableWidget):
         """
 
         for row in range(self.rowCount()):
-            dut_name = name + '_%d' % row
+            dut_name = name + '_%d' % row if not isinstance(name, list) else name[row]
             dut_item = QtWidgets.QTableWidgetItem()
             dut_item.setTextAlignment(QtCore.Qt.AlignCenter)
             dut_item.setText(dut_name)
@@ -423,7 +427,7 @@ class DataTable(QtWidgets.QTableWidget):
             for row in range(self.rowCount()):
                 try:
                     new.append(str(self.item(row, self.column_labels.index('Name')).text()))
-                except AttributeError: # no QTableWidgetItem for new input data
+                except AttributeError:  # no QTableWidgetItem for new input data
                     add_dut_item = QtWidgets.QTableWidgetItem()
                     add_dut_item.setTextAlignment(QtCore.Qt.AlignCenter)
                     add_dut_item.setText(name + '_%d' % row)

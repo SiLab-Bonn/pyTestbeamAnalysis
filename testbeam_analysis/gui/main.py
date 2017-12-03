@@ -1,6 +1,8 @@
 import sys
 import logging
 import platform
+import yaml
+import os
 
 from email import message_from_string
 from pkg_resources import get_distribution, DistributionNotFound
@@ -203,8 +205,12 @@ class AnalysisWindow(QtWidgets.QMainWindow):
         self.menuBar().addMenu(self.appearance_menu)
 
         self.session_menu = QtWidgets.QMenu('&Session', self)
+        self.session_menu.setToolTipsVisible(True)
         self.session_menu.addAction('&Save', self.save_session, QtCore.Qt.CTRL + QtCore.Qt.Key_S)
         self.session_menu.addAction('&Load', self.load_session, QtCore.Qt.CTRL + QtCore.Qt.Key_O)
+        # Disable until setup is done
+        self.session_menu.actions()[0].setEnabled(False)
+        self.session_menu.actions()[0].setToolTip('Finish data selection and testbeam setup to enable')
         self.menuBar().addMenu(self.session_menu)
 
         self.help_menu = QtWidgets.QMenu('&Help', self)
@@ -292,12 +298,15 @@ class AnalysisWindow(QtWidgets.QMainWindow):
                 if name == 'Setup':
                     msg_0 = 'Run consecutive analysis with default options without user interaction'
                     msg_1 = 'Go to currently running or next to be running analysis tab'
+                    msg_2 = 'Safe current analysis session'
                     for xx in [lambda tab_done, _: self.update_tabs(data=self.tw[tab_done].data, skip=tab_done),
-                               lambda: self.appearance_menu.actions()[1].setEnabled(True),
-                               lambda: self.appearance_menu.actions()[1].setToolTip(msg_1),
                                lambda: self.tabs.setCurrentIndex(self.tabs.currentIndex() + 1),
+                               lambda: self.appearance_menu.actions()[1].setEnabled(True),  # Enable show current tab
+                               lambda: self.appearance_menu.actions()[1].setToolTip(msg_1),
                                lambda: self.run_menu.actions()[0].setEnabled(True),  # Enable consecutive analysis
-                               lambda: self.run_menu.actions()[0].setToolTip(msg_0)]:
+                               lambda: self.run_menu.actions()[0].setToolTip(msg_0),
+                               lambda: self.session_menu.actions()[0].setEnabled(True),  # Enable saving session
+                               lambda: self.session_menu.actions()[0].setToolTip(msg_2)]:
                         self.tw[name].analysisFinished.connect(xx)
                     self.tw[name].statusMessage.connect(lambda message: self.handle_messages(message, 4000))
 
@@ -323,7 +332,7 @@ class AnalysisWindow(QtWidgets.QMainWindow):
                 else:
                     pass
 
-    def update_tabs(self, data=None, tabs=None, skip=None, exception=False, force=False):
+    def update_tabs(self, data=None, tabs=None, skip=None, exception=False, force=False, enable=None):
         """
         Updates the setup and options with data from the SetupTab and then updates the tabs
 
@@ -332,6 +341,7 @@ class AnalysisWindow(QtWidgets.QMainWindow):
         :param skip: str or list of tab names which should be skipped when updating tabs
         :param exception: bool determine whether to update a running analysis tab; if exception is thrown, update
         :param force: bool whether or not to update previously finished tabs
+        :param enable: bool whether or not to enable the updated tab; if None, the previous state is restored
         """
 
         # Save users current tab position
@@ -449,7 +459,7 @@ class AnalysisWindow(QtWidgets.QMainWindow):
                 self.tw[tab] = tmp_tw[tab]
 
                 # Get tab status of tab which is updated to set status of updated tab
-                enable = self.tabs.isTabEnabled(self.tab_order.index(tab))
+                enable = self.tabs.isTabEnabled(self.tab_order.index(tab)) if enable is None else enable
 
                 # Remove old tab, insert updated tab at same index and set status
                 self.tabs.removeTab(self.tab_order.index(tab))
@@ -498,33 +508,190 @@ class AnalysisWindow(QtWidgets.QMainWindow):
 
     def save_session(self):
         """
-        Creates a child SessionWindow of the analysis window to save current session
+        Opens a dialog and safes current session
         """
-        caption = 'Save session'
-        session = QtWidgets.QFileDialog.getSaveFileName(parent=self,
-                                                        caption=caption,
-                                                        directory='./sessions',
-                                                        filter='*.yaml')[0]
 
-        message = 'Congratulations! Your session would have been saved in %s' \
-                  ' ...if we had implemented saving sessions, which we have not.' % session
-        logging.info(message)
-        pass
+        # Path to sessions directory in output_path
+        sessions_dir = os.path.join(self.options['output_path'], 'sessions')
+
+        # Create session directory; if already existing, OSError is raised; if directory non-existing, re-raise
+        try:
+            os.makedirs(sessions_dir)
+        except OSError:
+            if not os.path.isdir(sessions_dir):
+                raise
+
+        # Make dialog to safe session
+        caption = 'Save session'
+        session_path = QtWidgets.QFileDialog.getSaveFileName(parent=self,
+                                                             caption=caption,
+                                                             directory=sessions_dir,
+                                                             filter='*.yaml')[0]
+        # User selected a file to safe session in
+        if session_path:
+
+            # Add .yaml if it wasn't written in the name; due to static method can't set default suffix
+            if 'yaml' not in session_path.split('.'):
+                session_path += '.yaml'
+
+            # Make dicts to safe tab status and output files
+            status = {}
+            enabled = {}
+            output_files = {}
+
+            # Loop over tabs
+            for tab in self.tab_order:
+                # Get tab and analysis status
+                enabled[tab] = self.tabs.isTabEnabled(self.tab_order.index(tab))
+                status[tab] = self.tw[tab].isFinished
+
+                # Get output files
+                try:
+                    output_files[tab] = self.tw[tab].output_files
+                # Files and setup tab have no output files
+                except AttributeError:
+                    pass
+
+            # Only safe a few things in order to rather restore state than really load files etc
+            session = {'status': status, 'enabled': enabled, 'output': output_files,
+                       'setup': self.setup, 'options': self.options}
+
+            # Safe session in yaml-file
+            with open(session_path, 'w') as f_write:
+                yaml.safe_dump(session, f_write, default_flow_style=False)
+
+            d, f = os.path.split(session_path)
+            msg = 'Successfully saved current session to %s in %s' % (f, d)
+            self.handle_messages(message=msg, ms=6000)
+
+        else:
+            # Remove sessions directory if empty
+            if not os.listdir(sessions_dir):
+                os.rmdir(sessions_dir)
 
     def load_session(self):
         """
-        Opens dialog to select previously saved session. Must be yaml-file and lie in ./sessions
+        Opens dialog to select previously saved session. Does several checks on session files content
         """
         caption = 'Load session'
-        session = QtWidgets.QFileDialog.getOpenFileName(parent=self,
-                                                        caption=caption,
-                                                        directory='./sessions',
-                                                        filter='*.yaml')[0]
+        session_path = QtWidgets.QFileDialog.getOpenFileName(parent=self,
+                                                             caption=caption,
+                                                             directory='.',
+                                                             filter='*.yaml')[0]
 
-        message = 'Congratulations! Your session would have been loaded from %s' \
-                  ' ...if we had implemented loading sessions, which we have not.' % session
-        logging.info(message)
-        pass
+        # Load session from file
+        try:
+            with open(session_path, 'r') as f_read:
+                session = yaml.load(f_read)
+        except IOError:
+            d, f = os.path.split(session_path)
+            msg = 'Error while loading %s from %s. Aborted.' % (f, d)
+            logging.error(msg=msg)
+            self.console_dock.setVisible(True)
+            return
+
+        # Make some checks
+        # keys that we need so far
+        required_keys = ('enabled', 'status', 'output', 'setup', 'options')
+        missing_keys = []
+
+        for key in required_keys:
+            if key not in session:
+                missing_keys.append(key)
+
+        # If keys are missing, abort
+        if missing_keys:
+            msg = 'Session missing %s. Aborted.' % ', '.join(missing_keys)
+            logging.error(msg=msg)
+            self.console_dock.setVisible(True)
+            return
+
+        # Check whether output files of completed tabs exist
+        missing_files = []
+        for tab in session['output'].keys():
+            # Analysis is finished and output files should exist
+            if session['status'][tab]:
+                out = session['output'][tab]
+
+                if isinstance(out, list):
+                    for f in out:
+                        if not os.path.isfile(f):
+                            missing_files.append(tab)
+                            break
+                elif isinstance(out, dict):
+                    for k in out:
+                        if not os.path.isfile(out[k]):
+                            missing_files.append(tab)
+                            break
+                else:
+                    if not os.path.isfile(out):
+                        missing_files.append(tab)
+
+        # If files are missing, abort
+        if missing_files:
+            msg = 'Session missing output files of %s. Aborted.' % ', '.join(missing_files)
+            logging.error(msg=msg)
+            self.console_dock.setVisible(True)
+            return
+
+        # Start loading tabs
+        # Reset analysis window and set the options and setup from sessions file
+        self.new_analysis()
+        self.setup = session['setup']
+        self.options = session['options']
+
+        # Loop over tabs and restore state
+        for tab in self.tab_order:
+            # Ubdate tabs
+            self.update_tabs(tabs=tab, force=True, enable=session['enabled'][tab])
+            self.tw[tab].isFinished = session['status'][tab]
+
+            # If tab is finished, disable and show buttons and connect
+            if session['status'][tab]:
+
+                if tab not in ['Files', 'Setup']:
+                    # AnalysisWidgets
+                    try:
+                        self.tw[tab].container.setDisabled(True)
+                    # ParallelAnalysisWidgets
+                    except AttributeError:
+                        for sub_tab in self.tw[tab].tw.keys():
+                            self.tw[tab].tw[sub_tab].container.setDisabled(True)
+                    # Show progressbar and rerun button
+                    self.tw[tab].p_bar.setVisible(True)
+                    self.tw[tab].p_bar.setFinished()
+                    self.tw[tab].btn_rerun.setVisible(True)
+                    self.tw[tab]._connect_vitables(files=session['output'][tab])
+
+                else:
+                    # TODO: make this less hacky
+                    if tab == 'Files':
+                        self.tw[tab]._data_table.input_files = session['options']['input_files']
+                        self.tw[tab]._data_table.dut_names = session['setup']['dut_names']
+                        self.tw[tab]._data_table.handle_data()
+                    else:
+                        self.tw[tab].input_data(session['setup'])
+
+                    # Disable tab
+                    self.tw[tab]._disable_tab()
+
+                # Set tab icon
+                self.tab_completed(tab=tab)
+
+        # Enable menus
+        if session['status']['Setup']:
+            # Enable consecutive analysis again
+            self.run_menu.actions()[0].setEnabled(True)
+            self.run_menu.actions()[0].setToolTip(
+                'Run consecutive analysis with default options without user interaction')
+            # Enable saving and loading sessions
+            self.session_menu.actions()[0].setEnabled(True)
+            self.session_menu.actions()[1].setEnabled(True)
+            # Enable view current tab
+            self.appearance_menu.actions()[1].setEnabled(True)
+
+        # Go to current tab
+        self.view_current_tab()
 
     def rerun_tab(self, tab):
         """
@@ -666,6 +833,10 @@ class AnalysisWindow(QtWidgets.QMainWindow):
                         self.settings_menu.actions()[0].setEnabled(True)
                         self.settings_menu.setToolTipsVisible(False)
 
+                        # Enable saving and loading sessions
+                        self.session_menu.actions()[0].setEnabled(True)
+                        self.session_menu.actions()[1].setEnabled(True)
+
                         # Remove consecutive analysis progressbar
                         self.remove_widget(widget=self.widget_rca, layout=self.main_layout)
 
@@ -701,6 +872,10 @@ class AnalysisWindow(QtWidgets.QMainWindow):
         self.settings_menu.actions()[0].setEnabled(False)
         self.settings_menu.setToolTipsVisible(True)
         self.settings_menu.actions()[0].setToolTip('Settings cannot be changed during consecutive analysis')
+
+        # Disable session menu consecutive analysis
+        self.session_menu.actions()[0].setEnabled(False)
+        self.session_menu.actions()[1].setEnabled(False)
 
         # Whenever starting rca restore flag state
         self.flag_interrupt = False
@@ -803,6 +978,7 @@ class AnalysisWindow(QtWidgets.QMainWindow):
             self.tw[tab].btn_ok.setText('ViTables not found')
             self.tw[tab].btn_ok.setDisabled(True)
             logging.error(msg)
+            self.console_dock.setVisible(True)
 
         else:
 
