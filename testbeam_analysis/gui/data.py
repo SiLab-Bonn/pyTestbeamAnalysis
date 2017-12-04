@@ -83,11 +83,11 @@ class DataTab(QtWidgets.QWidget):
         sl_1 = QtWidgets.QHBoxLayout()
         sl_1.addSpacing(h_space)
         layout_out = QtWidgets.QVBoxLayout()
-        self.edit_output = QtWidgets.QTextEdit(self.output_path)
+        self.edit_output = QtWidgets.QTextEdit()
         self.edit_output.setReadOnly(True)
         self.edit_output.show()
-        height = self.edit_output.document().size().height()
-        self.edit_output.setFixedHeight(height)
+        self.edit_output.document().contentsChanged.connect(self._set_edit_height)
+        self.edit_output.setText(self.output_path)
         self.edit_output.setLineWrapMode(QtWidgets.QTextEdit.WidgetWidth)
         button_out = QtWidgets.QPushButton('Set output folder')
         button_out.setToolTip('Set output older')
@@ -142,6 +142,22 @@ class DataTab(QtWidgets.QWidget):
         layout_widget = QtWidgets.QVBoxLayout()
         layout_widget.addWidget(widget_splitter)
         self.setLayout(layout_widget)
+
+    def _set_edit_height(self):
+        """
+        Dynamically change size of edit up to 1/3 of self.height
+        """
+
+        # Set size first
+        self.edit_output.setFixedHeight(
+            self.edit_output.document().size().height() +
+            self.edit_output.contentsMargins().top() +
+            self.edit_output.contentsMargins().bottom()
+        )
+
+        # Set fixed size if gets too big
+        if self.edit_output.height() >= self.height() / 3 >= 100:  # 100 arbitrary value for first size setting
+            self.edit_output.setFixedHeight(self.height() / 3)
 
     def _get_output_folder(self):
         """
