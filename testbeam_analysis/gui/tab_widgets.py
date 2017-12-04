@@ -30,6 +30,9 @@ class NoisyPixelsTab(ParallelAnalysisWidget):
         self.options = options
         self.setup = setup
 
+        # Plotting function
+        self.plot_func = plot_masked_pixels
+
         # Make variables for input of noisy pixel function
         self.output_files = [os.path.join(options['output_path'], dut + options['noisy_suffix']) for dut in setup['dut_names']]
 
@@ -57,7 +60,7 @@ class NoisyPixelsTab(ParallelAnalysisWidget):
 
         for x in [lambda: self._connect_vitables(files=self.output_files),
                   lambda: self.plot(input_files=self.output_files,
-                                    plot_func=plot_masked_pixels,
+                                    plot_func=self.plot_func,
                                     dut_names=self.duts,
                                     gui=True)]:
             self.analysisFinished.connect(x)
@@ -119,6 +122,8 @@ class ClusterPixelsTab(ParallelAnalysisWidget):
     def __init__(self, parent, setup, options, name, tab_list):
         super(ClusterPixelsTab, self).__init__(parent, setup, options, name, tab_list)
 
+        self.plot_func = plot_cluster_size
+
         self.output_files = [os.path.join(options['output_path'], dut + options['cluster_suffix']) for dut in setup['dut_names']]
 
         self.add_parallel_function(func=cluster_hits)
@@ -150,7 +155,7 @@ class ClusterPixelsTab(ParallelAnalysisWidget):
 
         for x in [lambda: self._connect_vitables(files=self.output_files),
                   lambda: self.plot(input_files=self.output_files,
-                                    plot_func=plot_cluster_size,
+                                    plot_func=self.plot_func,
                                     gui=True)]:
             self.analysisFinished.connect(x)
 
@@ -262,6 +267,8 @@ class TrackFindingTab(AnalysisWidget):
     def __init__(self, parent, setup, options, name, tab_list):
         super(TrackFindingTab, self).__init__(parent, setup, options, name, tab_list)
 
+        self.plot_func = plot_tracks_per_event
+
         self.output_files = os.path.join(options['output_path'], 'TrackCandidates_prealignment.h5')
 
         self.add_function(func=find_tracks)
@@ -287,7 +294,7 @@ class TrackFindingTab(AnalysisWidget):
                         fixed=False)
 
         for x in [lambda: self._connect_vitables(files=self.output_files),
-                  lambda: self.plot(input_file=self.output_files, plot_func=plot_tracks_per_event, gui=True)]:
+                  lambda: self.plot(input_file=self.output_files, plot_func=self.plot_func, gui=True)]:
             self.analysisFinished.connect(x)
 
 

@@ -639,14 +639,15 @@ class AnalysisWindow(QtWidgets.QMainWindow):
         self.new_analysis()
         self.setup = session['setup']
         self.options = session['options']
-
+        self.handle_messages(message='Loading', ms=0)
         # Loop over tabs and restore state
         for tab in self.tab_order:
             # Ubdate tabs
             self.update_tabs(tabs=tab, force=True, enable=session['enabled'][tab])
             self.tw[tab].isFinished = session['status'][tab]
 
-            # If tab is finished, disable and show buttons and connect
+            # If tab is finished, disable and show buttons, connect and plot if possible
+            # TODO: make this less messy
             if session['status'][tab]:
 
                 if tab not in ['Files', 'Setup']:
@@ -663,8 +664,20 @@ class AnalysisWindow(QtWidgets.QMainWindow):
                     self.tw[tab].btn_rerun.setVisible(True)
                     self.tw[tab]._connect_vitables(files=session['output'][tab])
 
+                    # Plotting is only possible for separated plotting functions
+                    try:
+                        self.tw[tab].plot(input_files=session['output'][tab],
+                                          plot_func=self.tw[tab].plot_func,
+                                          gui=True)
+                    except (TypeError, AttributeError) as e:
+                        if type(e).__name__ == TypeError.__name__:
+                            self.tw[tab].plot(input_file=session['output'][tab],
+                                              plot_func=self.tw[tab].plot_func,
+                                              gui=True)
+                        else:
+                            pass
+
                 else:
-                    # TODO: make this less hacky
                     if tab == 'Files':
                         self.tw[tab]._data_table.input_files = session['options']['input_files']
                         self.tw[tab]._data_table.dut_names = session['setup']['dut_names']
@@ -692,6 +705,8 @@ class AnalysisWindow(QtWidgets.QMainWindow):
 
         # Go to current tab
         self.view_current_tab()
+        # Clear status bar
+        self.statusBar().clearMessage()
 
     def rerun_tab(self, tab):
         """
@@ -750,6 +765,9 @@ class AnalysisWindow(QtWidgets.QMainWindow):
         # Disable consecutive analysis until setup is done
         self.run_menu.actions()[0].setEnabled(False)
         self.run_menu.actions()[0].setToolTip('Finish data selection and testbeam setup to enable')
+
+        # Disable saving session
+        self.session_menu.actions()[0].setEnabled(False)
 
         for i in reversed(range(self.main_splitter.count())):
             w = self.main_splitter.widget(i)
