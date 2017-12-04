@@ -547,7 +547,7 @@ class AnalysisWindow(QtWidgets.QMainWindow):
 
                 # Get output files
                 try:
-                    output_files[tab] = self.tw[tab].output_files
+                    output_files[tab] = self.tw[tab].output_file
                 # Files and setup tab have no output files
                 except AttributeError:
                     pass
@@ -666,16 +666,11 @@ class AnalysisWindow(QtWidgets.QMainWindow):
 
                     # Plotting is only possible for separated plotting functions
                     try:
-                        self.tw[tab].plot(input_files=session['output'][tab],
+                        self.tw[tab].plot(input_file=session['output'][tab],
                                           plot_func=self.tw[tab].plot_func,
                                           gui=True)
-                    except (TypeError, AttributeError) as e:
-                        if type(e).__name__ == TypeError.__name__:
-                            self.tw[tab].plot(input_file=session['output'][tab],
-                                              plot_func=self.tw[tab].plot_func,
-                                              gui=True)
-                        else:
-                            pass
+                    except AttributeError:
+                        pass
 
                 else:
                     if tab == 'Files':

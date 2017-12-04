@@ -34,7 +34,7 @@ class NoisyPixelsTab(ParallelAnalysisWidget):
         self.plot_func = plot_masked_pixels
 
         # Make variables for input of noisy pixel function
-        self.output_files = [os.path.join(options['output_path'], dut + options['noisy_suffix']) for dut in setup['dut_names']]
+        self.output_file = [os.path.join(options['output_path'], dut + options['noisy_suffix']) for dut in setup['dut_names']]
 
         self.add_parallel_function(func=generate_pixel_mask)
 
@@ -43,7 +43,7 @@ class NoisyPixelsTab(ParallelAnalysisWidget):
                                  func=generate_pixel_mask,
                                  fixed=True)
         self.add_parallel_option(option='output_mask_file',
-                                 default_value=self.output_files,
+                                 default_value=self.output_file,
                                  func=generate_pixel_mask,
                                  fixed=True)
         self.add_parallel_option(option='n_pixel',
@@ -58,10 +58,9 @@ class NoisyPixelsTab(ParallelAnalysisWidget):
                                  dtype='int',
                                  func=generate_pixel_mask)
 
-        for x in [lambda: self._connect_vitables(files=self.output_files),
-                  lambda: self.plot(input_files=self.output_files,
+        for x in [lambda: self._connect_vitables(files=self.output_file),
+                  lambda: self.plot(input_file=self.output_file,
                                     plot_func=self.plot_func,
-                                    dut_names=self.duts,
                                     gui=True)]:
             self.analysisFinished.connect(x)
 
@@ -103,14 +102,14 @@ class NoisyPixelsTab(ParallelAnalysisWidget):
         for dut in self.setup['dut_names']:
             if self.check_boxes[dut].isChecked():
                 self.duts = filter(lambda a: a != dut, self.duts)
-                self.output_files = filter(lambda a: dut not in a, self.output_files)
+                self.output_file = filter(lambda a: dut not in a, self.output_file)
                 self.options['skip_noisy_pixel'][self.setup['dut_names'].index(dut)] = True
             else:
                 if dut not in self.duts:
                     self.duts.insert(self.setup['dut_names'].index(dut), dut)
-                    self.output_files.insert(self.setup['dut_names'].index(dut),
-                                             os.path.join(self.options['output_path'],
-                                                          dut + self.options['noisy_suffix']))
+                    self.output_file.insert(self.setup['dut_names'].index(dut),
+                                            os.path.join(self.options['output_path'],
+                                                         dut + self.options['noisy_suffix']))
                 self.options['skip_noisy_pixel'][self.setup['dut_names'].index(dut)] = False
 
 
@@ -124,7 +123,7 @@ class ClusterPixelsTab(ParallelAnalysisWidget):
 
         self.plot_func = plot_cluster_size
 
-        self.output_files = [os.path.join(options['output_path'], dut + options['cluster_suffix']) for dut in setup['dut_names']]
+        self.output_file = [os.path.join(options['output_path'], dut + options['cluster_suffix']) for dut in setup['dut_names']]
 
         self.add_parallel_function(func=cluster_hits)
 
@@ -134,7 +133,7 @@ class ClusterPixelsTab(ParallelAnalysisWidget):
                                  fixed=True)
 
         self.add_parallel_option(option='output_cluster_file',
-                                 default_value=self.output_files,
+                                 default_value=self.output_file,
                                  func=cluster_hits,
                                  fixed=True)
 
@@ -153,8 +152,8 @@ class ClusterPixelsTab(ParallelAnalysisWidget):
                 else:
                     pass
 
-        for x in [lambda: self._connect_vitables(files=self.output_files),
-                  lambda: self.plot(input_files=self.output_files,
+        for x in [lambda: self._connect_vitables(files=self.output_file),
+                  lambda: self.plot(input_file=self.output_file,
                                     plot_func=self.plot_func,
                                     gui=True)]:
             self.analysisFinished.connect(x)
@@ -172,10 +171,10 @@ class PrealignmentTab(AnalysisWidget):
     def __init__(self, parent, setup, options, name, tab_list):
         super(PrealignmentTab, self).__init__(parent, setup, options, name, tab_list)
 
-        self.output_files = {'correlation': os.path.join(options['output_path'], 'Correlation.h5'),
-                             'alignment': os.path.join(options['output_path'], 'Alignment.h5'),
-                             'merged': os.path.join(options['output_path'], 'Merged.h5'),
-                             'tracklets': os.path.join(options['output_path'], 'Tracklets_prealigned.h5')}
+        self.output_file = {'correlation': os.path.join(options['output_path'], 'Correlation.h5'),
+                            'alignment': os.path.join(options['output_path'], 'Alignment.h5'),
+                            'merged': os.path.join(options['output_path'], 'Merged.h5'),
+                            'tracklets': os.path.join(options['output_path'], 'Tracklets_prealigned.h5')}
 
         self.add_function(func=correlate_cluster)
         self.add_function(func=prealignment)
@@ -188,17 +187,17 @@ class PrealignmentTab(AnalysisWidget):
                         fixed=True)
 
         self.add_option(option='output_correlation_file',
-                        default_value=self.output_files['correlation'],
+                        default_value=self.output_file['correlation'],
                         func=correlate_cluster,
                         fixed=True)
 
         self.add_option(option='input_correlation_file',
-                        default_value=self.output_files['correlation'],
+                        default_value=self.output_file['correlation'],
                         func=prealignment,
                         fixed=True)
 
         self.add_option(option='output_alignment_file',
-                        default_value=self.output_files['alignment'],
+                        default_value=self.output_file['alignment'],
                         func=prealignment,
                         fixed=True)
 
@@ -208,22 +207,22 @@ class PrealignmentTab(AnalysisWidget):
                         fixed=True)
 
         self.add_option(option='output_merged_file',
-                        default_value=self.output_files['merged'],
+                        default_value=self.output_file['merged'],
                         func=merge_cluster_data,
                         fixed=True)
 
         self.add_option(option='input_hit_file',
-                        default_value=self.output_files['merged'],
+                        default_value=self.output_file['merged'],
                         func=apply_alignment,
                         fixed=True)
 
         self.add_option(option='input_alignment_file',
-                        default_value=self.output_files['alignment'],
+                        default_value=self.output_file['alignment'],
                         func=apply_alignment,
                         fixed=True)
 
         self.add_option(option='output_hit_file',
-                        default_value=self.output_files['tracklets'],
+                        default_value=self.output_file['tracklets'],
                         func=apply_alignment,
                         fixed=True)
 
@@ -243,14 +242,14 @@ class PrealignmentTab(AnalysisWidget):
                         default_value=True, fixed=True)
         self.add_option(option='no_z', func=apply_alignment, fixed=True)
 
-        for x in [lambda: self._connect_vitables(files=self.output_files.values()),
+        for x in [lambda: self._connect_vitables(files=self.output_file.values()),
                   lambda: self._make_plots()]:  # kwargs for correlation
             self.analysisFinished.connect(x)
 
     def _make_plots(self):
 
         # Determine the order of plotting tabs with OrderedDict
-        multiple_plotting_data = OrderedDict([('correlation', self.output_files['correlation']),
+        multiple_plotting_data = OrderedDict([('correlation', self.output_file['correlation']),
                                               ('prealignment', None)])
         multiple_plotting_func = {'correlation': plot_correlations, 'prealignment': None}
         multiple_plotting_figs = {'correlation': None, 'prealignment': self.return_values}
@@ -269,7 +268,7 @@ class TrackFindingTab(AnalysisWidget):
 
         self.plot_func = plot_tracks_per_event
 
-        self.output_files = os.path.join(options['output_path'], 'TrackCandidates_prealignment.h5')
+        self.output_file = os.path.join(options['output_path'], 'TrackCandidates_prealignment.h5')
 
         self.add_function(func=find_tracks)
 
@@ -284,7 +283,7 @@ class TrackFindingTab(AnalysisWidget):
                         fixed=True)
 
         self.add_option(option='output_track_candidates_file',
-                        default_value=self.output_files,
+                        default_value=self.output_file,
                         func=find_tracks,
                         fixed=True)
 
@@ -293,8 +292,8 @@ class TrackFindingTab(AnalysisWidget):
                         func=find_tracks,
                         fixed=False)
 
-        for x in [lambda: self._connect_vitables(files=self.output_files),
-                  lambda: self.plot(input_file=self.output_files, plot_func=self.plot_func, gui=True)]:
+        for x in [lambda: self._connect_vitables(files=self.output_file),
+                  lambda: self.plot(input_file=self.output_file, plot_func=self.plot_func, gui=True)]:
             self.analysisFinished.connect(x)
 
 
@@ -308,7 +307,7 @@ class AlignmentTab(AnalysisWidget):
     def __init__(self, parent, setup, options, name, tab_list):
         super(AlignmentTab, self).__init__(parent, setup, options, name, tab_list)
 
-        self.output_files = os.path.join(options['output_path'], 'Tracklets.h5')
+        self.output_file = os.path.join(options['output_path'], 'Tracklets.h5')
 
         # define default matrix for iterable of iterable dtype with tr(def_matrix) = 0
         def_matrix = [[i if i != j else None for i in range(setup['n_duts'])] for j in range(setup['n_duts'])]
@@ -365,7 +364,7 @@ class AlignmentTab(AnalysisWidget):
                         fixed=True)
 
         self.add_option(option='output_hit_file',
-                        default_value=self.output_files,
+                        default_value=self.output_file,
                         func=apply_alignment,
                         fixed=True)
 
@@ -374,7 +373,7 @@ class AlignmentTab(AnalysisWidget):
                         func=apply_alignment,
                         optional=True)
 
-        for x in [lambda: self._connect_vitables(files=self.output_files),
+        for x in [lambda: self._connect_vitables(files=self.output_file),
                   lambda: self.btn_skip.deleteLater()]:
             self.analysisFinished.connect(x)
 
@@ -420,9 +419,9 @@ class TrackFittingTab(AnalysisWidget):
 
         if options['skip_alignment']:
             input_tracks = os.path.join(options['output_path'], 'TrackCandidates_prealignment.h5')
-            self.output_files = os.path.join(options['output_path'], 'Tracks_prealigned.h5')
+            self.output_file = os.path.join(options['output_path'], 'Tracks_prealigned.h5')
         else:
-            self.output_files = os.path.join(options['output_path'], 'Tracks_aligned.h5')
+            self.output_file = os.path.join(options['output_path'], 'Tracks_aligned.h5')
 
             self.add_function(func=find_tracks)
 
@@ -467,7 +466,7 @@ class TrackFittingTab(AnalysisWidget):
                         fixed=True)
 
         self.add_option(option='output_tracks_file',
-                        default_value=self.output_files,
+                        default_value=self.output_file,
                         func=fit_tracks,
                         fixed=True)
 
@@ -509,8 +508,8 @@ class TrackFittingTab(AnalysisWidget):
                             fixed=True)
 
         # Determine the order of plotting tabs with OrderedDict
-        multiple_plotting_data = OrderedDict([('Tracks', self.output_files), ('Tracks_per_event', self.output_files),
-                                              ('Track_density', self.output_files)])
+        multiple_plotting_data = OrderedDict([('Tracks', self.output_file), ('Tracks_per_event', self.output_file),
+                                              ('Track_density', self.output_file)])
 
         multiple_plotting_func = {'Tracks': plot_events, 'Tracks_per_event': plot_tracks_per_event,
                                   'Track_density': plot_track_density}
@@ -523,7 +522,7 @@ class TrackFittingTab(AnalysisWidget):
                                                       'max_chi2': 100000, 'gui': True},
                                     'Tracks_per_event': {'gui': True}}
 
-        for x in [lambda: self._connect_vitables(files=self.output_files),
+        for x in [lambda: self._connect_vitables(files=self.output_file),
                   lambda: self.plot(input_file=multiple_plotting_data,
                                     plot_func=multiple_plotting_func,
                                     **multiple_plotting_kwargs)]:
@@ -545,7 +544,7 @@ class ResidualTab(AnalysisWidget):
 
         self.add_function(func=calculate_residuals)
 
-        self.output_files = os.path.join(options['output_path'], 'Residuals.h5')
+        self.output_file = os.path.join(options['output_path'], 'Residuals.h5')
 
         self.add_option(option='input_tracks_file',
                         default_value=input_tracks,
@@ -558,7 +557,7 @@ class ResidualTab(AnalysisWidget):
                         fixed=True)
 
         self.add_option(option='output_residuals_file',
-                        default_value=self.output_files,
+                        default_value=self.output_file,
                         func=calculate_residuals,
                         fixed=True)
 
@@ -577,7 +576,7 @@ class ResidualTab(AnalysisWidget):
                         func=calculate_residuals,
                         fixed=True)
 
-        for x in [lambda: self._connect_vitables(files=self.output_files),
+        for x in [lambda: self._connect_vitables(files=self.output_file),
                   lambda: self._make_plots()]:
             self.analysisFinished.connect(x)
 
@@ -612,7 +611,7 @@ class EfficiencyTab(AnalysisWidget):
 
         self.add_function(func=calculate_efficiency)
 
-        self.output_files = os.path.join(options['output_path'], 'Efficiency.h5')
+        self.output_file = os.path.join(options['output_path'], 'Efficiency.h5')
 
         self.add_option(option='input_tracks_file',
                         default_value=input_tracks,
@@ -625,7 +624,7 @@ class EfficiencyTab(AnalysisWidget):
                         fixed=True)
 
         self.add_option(option='output_efficiency_file',
-                        default_value=self.output_files,
+                        default_value=self.output_file,
                         func=calculate_efficiency,
                         fixed=True)
 
@@ -656,7 +655,7 @@ class EfficiencyTab(AnalysisWidget):
                         func=calculate_efficiency,
                         fixed=True)
 
-        for x in [lambda: self._connect_vitables(files=self.output_files),
+        for x in [lambda: self._connect_vitables(files=self.output_file),
                   lambda: self._make_plots()]:
             self.analysisFinished.connect(x)
 

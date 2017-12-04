@@ -883,13 +883,13 @@ class ParallelAnalysisWidget(QtWidgets.QWidget):
         # Start thread
         self.vitables_thread.start()
 
-    def plot(self, input_files, plot_func, dut_names=None, **kwargs):
+    def plot(self, input_file, plot_func, dut_names=None, **kwargs):
         """
         Function that creates the plots for several input files with same plotting function for the plotting area
         of the ParallelAnalysisWidget using AnalysisPlotter. See AnalysisPlotters docstring for info on how
         plots are created.
 
-        :param input_files: list of HDF5-files or dict of lists
+        :param input_file: list of HDF5-files or dict of lists
         :param plot_func: function or dict of functions if plotting for multiple functions
         :param dut_names: list of dut names
         :param kwargs: keyword arguments or keyword from dicts keys with another dict as argument if plotting for multiple functions
@@ -906,7 +906,7 @@ class ParallelAnalysisWidget(QtWidgets.QWidget):
 
         # Make plot widget for each DUT
         for dut in names:
-            plot = AnalysisPlotter(input_file=input_files[names.index(dut)], plot_func=plot_func,
+            plot = AnalysisPlotter(input_file=input_file[names.index(dut)], plot_func=plot_func,
                                    thread=self.plotting_thread, dut_name=dut, **kwargs)
             plot.finishedPlotting.connect(self._plotting_finished)
             plot.exceptionSignal.connect(lambda e, trc_bck: self.emit_exception(exception=e, trace_back=trc_bck,
