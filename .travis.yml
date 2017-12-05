@@ -54,7 +54,7 @@ before_install:
   - conda info -a
   - conda create -q -n tba python="$TRAVIS_PYTHON_VERSION" pip
   - source activate tba
-  - conda install numpy cython pytables scipy matplotlib nose numba mock pytest-cov pyyaml
+  - conda install numpy cython pytables scipy matplotlib nose numba mock pytest-cov hypothesis pyyaml
   - pip install --upgrade pip
   - pip install progressbar-latest xvfbwrapper coverage python-coveralls pixel_clusterizer pylandau pytest
   - pip install -r requirements_docs.txt
