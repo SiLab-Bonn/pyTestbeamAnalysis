@@ -1,5 +1,5 @@
 """
-Implements a DataTab that allows to select and check test beam data for further analysis
+Implements a FilesTab that allows to select and check test beam data for further analysis
 """
 
 import os
@@ -9,7 +9,7 @@ import logging
 from PyQt5 import QtCore, QtWidgets, QtGui
 
 
-class DataTab(QtWidgets.QWidget):
+class FilesTab(QtWidgets.QWidget):
     """
     Implements the tab content for data file handling
     """
@@ -18,13 +18,13 @@ class DataTab(QtWidgets.QWidget):
     analysisFinished = QtCore.pyqtSignal(str, list)
 
     def __init__(self, parent=None):
-        super(DataTab, self).__init__(parent)
+        super(FilesTab, self).__init__(parent)
 
         # Add output data
         self.data = {}
         self.output_path = os.getcwd()
 
-        # Store state of DataTab
+        # Store state of FilesTab
         self.isFinished = False
 
         self._setup()
@@ -39,7 +39,7 @@ class DataTab(QtWidgets.QWidget):
         left_widget = QtWidgets.QWidget()
         tab_layout = QtWidgets.QHBoxLayout()
         left_widget.setLayout(tab_layout)
-        self._data_table = DataTable(parent=left_widget)
+        self._data_table = FilesTable(parent=left_widget)
         self._data_table.dragAndDropText.connect(lambda msg: self._emit_message(msg))
         tab_layout.addWidget(self._data_table)
 
@@ -203,7 +203,7 @@ class DataTab(QtWidgets.QWidget):
 
     def _update_data(self):
         """
-        Updates the data returned by DataTab
+        Updates the data returned by FilesTab
         """
         self.data['output_path'] = self.output_path
         self.data['input_files'] = self._data_table.input_files
@@ -220,7 +220,7 @@ class DataTab(QtWidgets.QWidget):
         self.btn_ok.setDisabled(True)
 
 
-class DataTable(QtWidgets.QTableWidget):
+class FilesTable(QtWidgets.QTableWidget):
     """
     Class to get, display and handle the input data of the DUTs
     for which a testbeam analysis will be performed
@@ -230,7 +230,7 @@ class DataTable(QtWidgets.QTableWidget):
     dragAndDropText = QtCore.pyqtSignal('QString')
 
     def __init__(self, parent=None):
-        super(DataTable, self).__init__(parent)
+        super(FilesTable, self).__init__(parent)
 
         # Lists for dut names, input files
         self.dut_names = []

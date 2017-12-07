@@ -10,11 +10,11 @@ from pkg_resources import get_distribution, DistributionNotFound
 from PyQt5 import QtCore, QtWidgets, QtGui
 
 import testbeam_analysis
-from testbeam_analysis.gui.sub_windows import SettingsWindow, ExceptionWindow
-from testbeam_analysis.gui.analysis_logger import AnalysisLogger, AnalysisStream
-from testbeam_analysis.gui.data import DataTab
-from testbeam_analysis.gui.setup import SetupTab
-from testbeam_analysis.gui import tab_widgets
+from testbeam_analysis.gui.gui_widgets.sub_windows import SettingsWindow, ExceptionWindow
+from testbeam_analysis.gui.gui_widgets.logger import AnalysisLogger, AnalysisStream
+from testbeam_analysis.gui.tab_widgets.files_tab import FilesTab
+from testbeam_analysis.gui.tab_widgets.setup_tab import SetupTab
+from testbeam_analysis.gui.tab_widgets import analysis_tabs
 
 PROJECT_NAME = 'Testbeam Analysis'
 GUI_AUTHORS = 'Pascal Wolf, David-Leon Pohl'
@@ -111,7 +111,7 @@ class AnalysisWindow(QtWidgets.QMainWindow):
         # Initialize each tab
         for name in self.tab_order:
             if name == 'Files':
-                widget = DataTab(parent=self.tabs)
+                widget = FilesTab(parent=self.tabs)
             else:
                 # Add dummy widget
                 widget = QtWidgets.QWidget(parent=self.tabs)
@@ -119,7 +119,7 @@ class AnalysisWindow(QtWidgets.QMainWindow):
             self.tw[name] = widget
             self.tabs.addTab(self.tw[name], name)
 
-        # Disable all tabs but DataTab. Enable tabs later via self.enable_tabs()
+        # Disable all tabs but FilesTab. Enable tabs later via self.enable_tabs()
         if not _DEBUG:
             self.handle_tabs(enable=False)
         else:
@@ -391,55 +391,55 @@ class AnalysisWindow(QtWidgets.QMainWindow):
                 widget = SetupTab(parent=self.tabs)
 
             elif name == 'Noisy Pixel':
-                widget = tab_widgets.NoisyPixelsTab(parent=self.tabs,
-                                                    setup=self.setup,
-                                                    options=self.options,
-                                                    name=name,
-                                                    tab_list='Clustering')
-            elif name == 'Clustering':
-                widget = tab_widgets.ClusterPixelsTab(parent=self.tabs,
+                widget = analysis_tabs.NoisyPixelsTab(parent=self.tabs,
                                                       setup=self.setup,
                                                       options=self.options,
                                                       name=name,
-                                                      tab_list='Pre-alignment')
+                                                      tab_list='Clustering')
+            elif name == 'Clustering':
+                widget = analysis_tabs.ClusterPixelsTab(parent=self.tabs,
+                                                        setup=self.setup,
+                                                        options=self.options,
+                                                        name=name,
+                                                        tab_list='Pre-alignment')
 
             elif name == 'Pre-alignment':
-                widget = tab_widgets.PrealignmentTab(parent=self.tabs,
-                                                     setup=self.setup,
-                                                     options=self.options,
-                                                     name=name,
-                                                     tab_list='Track finding')
+                widget = analysis_tabs.PrealignmentTab(parent=self.tabs,
+                                                       setup=self.setup,
+                                                       options=self.options,
+                                                       name=name,
+                                                       tab_list='Track finding')
 
             elif name == 'Track finding':
-                widget = tab_widgets.TrackFindingTab(parent=self.tabs,
-                                                     setup=self.setup,
-                                                     options=self.options,
-                                                     name=name,
-                                                     tab_list='Alignment')
+                widget = analysis_tabs.TrackFindingTab(parent=self.tabs,
+                                                       setup=self.setup,
+                                                       options=self.options,
+                                                       name=name,
+                                                       tab_list='Alignment')
             elif name == 'Alignment':
-                widget = tab_widgets.AlignmentTab(parent=self.tabs,
-                                                  setup=self.setup,
-                                                  options=self.options,
-                                                  name=name,
-                                                  tab_list='Track fitting')
+                widget = analysis_tabs.AlignmentTab(parent=self.tabs,
+                                                    setup=self.setup,
+                                                    options=self.options,
+                                                    name=name,
+                                                    tab_list='Track fitting')
             elif name == 'Track fitting':
-                widget = tab_widgets.TrackFittingTab(parent=self.tabs,
-                                                     setup=self.setup,
-                                                     options=self.options,
-                                                     name=name,
-                                                     tab_list=['Residuals', 'Efficiency'])
+                widget = analysis_tabs.TrackFittingTab(parent=self.tabs,
+                                                       setup=self.setup,
+                                                       options=self.options,
+                                                       name=name,
+                                                       tab_list=['Residuals', 'Efficiency'])
             elif name == 'Residuals':
-                widget = tab_widgets.ResidualTab(parent=self.tabs,
-                                                 setup=self.setup,
-                                                 options=self.options,
-                                                 name=name,
-                                                 tab_list='Efficiency')
-            elif name == 'Efficiency':
-                widget = tab_widgets.EfficiencyTab(parent=self.tabs,
+                widget = analysis_tabs.ResidualTab(parent=self.tabs,
                                                    setup=self.setup,
                                                    options=self.options,
                                                    name=name,
-                                                   tab_list='Last')  # Random string for last tab, NOT in self.tab_order
+                                                   tab_list='Efficiency')
+            elif name == 'Efficiency':
+                widget = analysis_tabs.EfficiencyTab(parent=self.tabs,
+                                                     setup=self.setup,
+                                                     options=self.options,
+                                                     name=name,
+                                                     tab_list='Last')  # Random string for last tab, NOT in self.tab_order
             else:
                 continue
 
@@ -785,7 +785,7 @@ class AnalysisWindow(QtWidgets.QMainWindow):
     def run_consecutive_analysis(self):
         """
         Method to start a consecutive call of all analysis functions with their default values
-        as defined in tab_widgets.py. Acronym rca==run constructive analysis
+        as defined in analysis_tabs.py. Acronym rca==run constructive analysis
         """
 
         def handle_rca(tab=None, interrupt=False):

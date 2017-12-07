@@ -14,10 +14,10 @@ from collections import OrderedDict, defaultdict
 from numpydoc.docscrape import FunctionDoc
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-from testbeam_analysis.gui import option_widgets
-from testbeam_analysis.gui.analysis_plotter import AnalysisPlotter
-from testbeam_analysis.gui.analysis_worker import AnalysisWorker
-from testbeam_analysis.gui.analysis_bar import AnalysisBar
+from testbeam_analysis.gui.gui_widgets import option_widgets
+from testbeam_analysis.gui.gui_widgets.plotter import AnalysisPlotter
+from testbeam_analysis.gui.gui_widgets.worker import AnalysisWorker
+from testbeam_analysis.gui.gui_widgets.progbar import AnalysisBar
 
 
 def get_default_args(func):

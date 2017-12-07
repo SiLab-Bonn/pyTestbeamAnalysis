@@ -8,7 +8,7 @@ import os
 
 from collections import OrderedDict
 from PyQt5 import QtCore, QtWidgets
-from testbeam_analysis.gui.analysis_widgets import AnalysisWidget, ParallelAnalysisWidget
+from testbeam_analysis.gui.gui_widgets.analysis_widgets import AnalysisWidget, ParallelAnalysisWidget
 from testbeam_analysis.hit_analysis import generate_pixel_mask, cluster_hits
 from testbeam_analysis.dut_alignment import correlate_cluster, prealignment, merge_cluster_data, apply_alignment, alignment
 from testbeam_analysis.track_analysis import find_tracks, fit_tracks

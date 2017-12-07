@@ -7,8 +7,7 @@ import matplotlib
 import inspect
 import logging
 
-from testbeam_analysis.gui.analysis_worker import AnalysisWorker
-
+from testbeam_analysis.gui.gui_widgets.worker import AnalysisWorker
 from PyQt5 import QtWidgets, QtCore
 
 matplotlib.use('Qt5Agg')  # Make sure that we are using QT5
