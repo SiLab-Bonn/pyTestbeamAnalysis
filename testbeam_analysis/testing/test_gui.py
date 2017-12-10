@@ -113,12 +113,12 @@ class TestGui(unittest.TestCase):
         # Add function and check
         self.analysis_widget.add_function(some_func)
 
-        self.assertListEqual(self.analysis_widget.calls.values(), [{'a': 1, 'b': 'String', 'c': 3.14159265, 'd': True}])
+        self.assertListEqual(list(self.analysis_widget.calls.values()), [{'a': 1, 'b': 'String', 'c': 3.14159265, 'd': True}])
 
         # Change existing option and check
         self.analysis_widget.add_option(option='a', func=some_func, default_value=2)
 
-        self.assertListEqual(self.analysis_widget.calls.values(), [{'a': 2, 'b': 'String', 'c': 3.14159265, 'd': True}])
+        self.assertListEqual(list(self.analysis_widget.calls.values()), [{'a': 2, 'b': 'String', 'c': 3.14159265, 'd': True}])
 
         # Check for if correct widgets were created
         self.assertEqual(isinstance(self.analysis_widget.option_widgets['a'], OptionSlider), True)
