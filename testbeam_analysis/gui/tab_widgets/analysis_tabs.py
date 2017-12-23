@@ -32,6 +32,7 @@ class NoisyPixelsTab(ParallelAnalysisWidget):
 
         # Plotting function
         self.plot_func = plot_masked_pixels
+        self.plot_kwargs = {'gui': True}
 
         # Make variables for input of noisy pixel function
         self.output_file = [os.path.join(options['output_path'], dut + options['noisy_suffix']) for dut in setup['dut_names']]
@@ -53,7 +54,7 @@ class NoisyPixelsTab(ParallelAnalysisWidget):
         self.add_parallel_option(option='dut_name',
                                  default_value=setup['dut_names'],
                                  func=generate_pixel_mask,
-                                 fixed=False)
+                                 fixed=True)
         self.add_parallel_option(option='filter_size',
                                  dtype='int',
                                  func=generate_pixel_mask)
@@ -122,6 +123,7 @@ class ClusterPixelsTab(ParallelAnalysisWidget):
         super(ClusterPixelsTab, self).__init__(parent, setup, options, name, tab_list)
 
         self.plot_func = plot_cluster_size
+        self.plot_kwargs = {'gui': True}
 
         self.output_file = [os.path.join(options['output_path'], dut + options['cluster_suffix']) for dut in setup['dut_names']]
 
@@ -140,7 +142,7 @@ class ClusterPixelsTab(ParallelAnalysisWidget):
         self.add_parallel_option(option='dut_name',
                                  default_value=setup['dut_names'],
                                  func=cluster_hits,
-                                 fixed=False)
+                                 fixed=True)
 
         if options['skip_noisy_pixel']:
             for dut in setup['dut_names']:
@@ -267,6 +269,7 @@ class TrackFindingTab(AnalysisWidget):
         super(TrackFindingTab, self).__init__(parent, setup, options, name, tab_list)
 
         self.plot_func = plot_tracks_per_event
+        self.plot_kwargs = {'gui': True}
 
         self.output_file = os.path.join(options['output_path'], 'TrackCandidates_prealignment.h5')
 
@@ -496,7 +499,7 @@ class TrackFittingTab(AnalysisWidget):
                         default_value=[200.] * setup['n_duts'], optional=False)
 
         # Check whether scatter planes in setup
-        if setup['scatter_planes']['sct_names']:
+        if setup['scatter_planes']:
             self.add_option(option='add_scattering_plane',
                             default_value=setup['scatter_planes'],
                             func=fit_tracks,

@@ -578,6 +578,8 @@ class AnalysisWindow(QtWidgets.QMainWindow):
                                                              caption=caption,
                                                              directory='.',
                                                              filter='*.yaml')[0]
+        if not session_path:
+            return
 
         # Load session from file
         try:
@@ -668,20 +670,18 @@ class AnalysisWindow(QtWidgets.QMainWindow):
                     try:
                         self.tw[tab].plot(input_file=session['output'][tab],
                                           plot_func=self.tw[tab].plot_func,
-                                          gui=True)
+                                          **self.tw[tab].plot_kwargs)
                     except AttributeError:
                         pass
 
                 else:
                     if tab == 'Files':
-                        self.tw[tab]._data_table.input_files = session['options']['input_files']
-                        self.tw[tab]._data_table.dut_names = session['setup']['dut_names']
-                        self.tw[tab]._data_table.handle_data()
+                        self.tw[tab].load_files(session)
                     else:
-                        self.tw[tab].input_data(session['setup'])
+                        self.tw[tab].load_setup(session['setup'])
 
-                    # Disable tab
-                    self.tw[tab]._disable_tab()
+                    # Set tab read-only
+                    self.tw[tab].set_read_only()
 
                 # Set tab icon
                 self.tab_completed(tab=tab)

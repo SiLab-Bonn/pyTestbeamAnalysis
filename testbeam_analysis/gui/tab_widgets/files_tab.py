@@ -54,8 +54,8 @@ class FilesTab(QtWidgets.QWidget):
         sl.addSpacing(h_space)
 
         # Make buttons and add layout for option buttons
-        layout_buttons = QtWidgets.QVBoxLayout()
-        layout_buttons.setSpacing(sub_v_space)
+        self.layout_buttons = QtWidgets.QVBoxLayout()
+        self.layout_buttons.setSpacing(sub_v_space)
 
         # Make a select button to select input files and connect
         button_select = QtWidgets.QPushButton('Select data of DUTs')
@@ -72,17 +72,17 @@ class FilesTab(QtWidgets.QWidget):
         button_clear.clicked.connect(lambda: self._data_table.clear_table())
 
         # Add buttons to main layout
-        layout_buttons.addWidget(button_select)
-        layout_buttons.addWidget(button_names)
-        layout_buttons.addWidget(button_clear)
-        sl.addLayout(layout_buttons)
+        self.layout_buttons.addWidget(button_select)
+        self.layout_buttons.addWidget(button_names)
+        self.layout_buttons.addWidget(button_clear)
+        sl.addLayout(self.layout_buttons)
         layout_options.addLayout(sl)
 
         # Make button to select output folder and connect
         # Add sub layout for horizontal spacing
         sl_1 = QtWidgets.QHBoxLayout()
         sl_1.addSpacing(h_space)
-        layout_out = QtWidgets.QVBoxLayout()
+        self.layout_out = QtWidgets.QVBoxLayout()
         self.edit_output = QtWidgets.QTextEdit()
         self.edit_output.setReadOnly(True)
         self.edit_output.show()
@@ -92,9 +92,9 @@ class FilesTab(QtWidgets.QWidget):
         button_out = QtWidgets.QPushButton('Set output folder')
         button_out.setToolTip('Set output older')
         button_out.clicked.connect(lambda: self._get_output_folder())
-        layout_out.addWidget(self.edit_output)
-        layout_out.addWidget(button_out)
-        sl_1.addLayout(layout_out)
+        self.layout_out.addWidget(self.edit_output)
+        self.layout_out.addWidget(button_out)
+        sl_1.addLayout(self.layout_out)
         label_output = QtWidgets.QLabel('Output folder')
 
         # Add to main layout
@@ -110,7 +110,7 @@ class FilesTab(QtWidgets.QWidget):
         message_ok = "Configuration for %d DUT(s) set."
         for x in [lambda: self._data_table.update_setup(),
                   lambda: self._update_data(),
-                  lambda: self._disable_tab(),
+                  lambda: self.set_read_only(),
                   lambda: self._emit_message(message_ok % (len(self._data_table.input_files)))]:
             self.btn_ok.clicked.connect(x)
 
@@ -213,11 +213,36 @@ class FilesTab(QtWidgets.QWidget):
         self.isFinished = True
         self.analysisFinished.emit('Files', ['Setup'])
 
-    def _disable_tab(self):
+    def set_read_only(self, read_only=True):
+        """
+        Method to disable the tab while leaving some widgets active in order to review file selection
+        """
 
-        self.container.setDisabled(True)
-        self._data_table.setDisabled(True)
-        self.btn_ok.setDisabled(True)
+        # Disable all buttons in the button and output layout
+        for layout in [self.layout_buttons, self.layout_out]:
+            for i in reversed(range(layout.count())):
+                if isinstance(layout.itemAt(i), QtWidgets.QWidgetItem):
+                    w = layout.itemAt(i).widget()
+                    if isinstance(w, QtWidgets.QPushButton):
+                        w.setDisabled(read_only)
+
+        self._data_table.set_read_only(read_only)
+        self.btn_ok.setDisabled(read_only)
+
+    def load_files(self, session):
+        """
+        Loads file names and dut names from saved session
+
+        :param session: dict
+        """
+
+        if 'options' not in session and 'setup' not in session:
+            return
+
+        self._data_table.input_files = session['options']['input_files']
+        self._data_table.dut_names = session['setup']['dut_names']
+        self.edit_output.setText(session['options']['output_path'])
+        self._data_table.handle_data()
 
 
 class FilesTable(QtWidgets.QTableWidget):
@@ -299,18 +324,13 @@ class FilesTable(QtWidgets.QTableWidget):
                                                            filter='*.h5')[0]:
             self.input_files.append(os.path.join(path))
 
-        self.handle_data()
+        if self.input_files:
+            self.handle_data()
 
     def handle_data(self):
         """
         Arranges input_data in the table and re-news table if DUT amount/order has been updated
         """
-
-#        for widget in self.parentWidget().children():
-#            if isinstance(widget, QtWidgets.QTableWidget):
-#                #widget.clear()
-#                self.parentWidget().layout().removeWidget(widget)
-#        self.clear()
 
         self.row_labels = [('DUT ' + '%d' % i) for i, _ in enumerate(self.input_files)]
         self.column_labels = ['Path', 'Name', 'Status', 'Navigation']
@@ -321,7 +341,7 @@ class FilesTable(QtWidgets.QTableWidget):
         self.setVerticalHeaderLabels(self.row_labels)
 
         for row, dut in enumerate(self.input_files):
-            # FIXME: replace with QTextEdit to show full text if needed
+            # TODO: replace with QTextEdit to show full text if needed
             # edit_dut = QtWidgets.QTextEdit(dut)
             # edit_dut.setLineWrapMode(True)
             # edit_dut.setFrameStyle(0)
@@ -337,6 +357,7 @@ class FilesTable(QtWidgets.QTableWidget):
             path_item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
             path_item.setTextAlignment(QtCore.Qt.AlignLeft)
             path_item.setText(dut)
+            path_item.setToolTip(dut)
             self.setItem(row, self.column_labels.index('Path'), path_item)
 
         self.update_dut_names()
@@ -410,7 +431,7 @@ class FilesTable(QtWidgets.QTableWidget):
         except AttributeError:
             pass
 
-        if new != self.input_files:  # and len(new) != 0:
+        if new != self.input_files:
             self.input_files = new
             self.inputFilesChanged.emit()
 
@@ -476,6 +497,26 @@ class FilesTable(QtWidgets.QTableWidget):
 
         self.setRowCount(0)
         self.update_data()
+
+    def set_read_only(self, read_only=True):
+        """
+        Make all cells of the table only readable
+        """
+
+        # Loop over all cells and disable widgets / cell items
+        for i in range(self.columnCount()):
+            for j in range(self.rowCount()):
+                # Widgets
+                w = self.cellWidget(i, j)
+                if w:
+                    w.setDisabled(read_only)
+                # Items
+                item = self.item(i, j)
+                if item and read_only:
+                    item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
+
+        # Disable sorting
+        self.setSortingEnabled(not read_only)
 
     def _make_nav_buttons(self):
         """

@@ -25,6 +25,7 @@ class SettingsWindow(QtWidgets.QMainWindow):
                               'pixel_size': None,
                               'z_positions': None,
                               'rotations': None,
+                              'material_budget': None,
                               'scatter_planes': None}
 
         self.default_options = {'input_files': None,

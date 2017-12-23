@@ -99,8 +99,10 @@ class SetupTab(QtWidgets.QWidget):
         btn_scatter = QtWidgets.QToolButton()
         btn_scatter.setText('+ Scatter plane')
         btn_scatter.setToolTip('Add a passive plane e.g. multiple scatter plane to the setup')
-        btn_scatter.clicked.connect(lambda: self._add_dut(dut_name='Sct_%i' % self._n_sct_plns, scatter_plane=True))
-        btn_scatter.clicked.connect(lambda: self._check_input())
+        for x in [lambda: self._add_dut(dut_name='Sct_%i' % self._n_sct_plns, scatter_plane=True),
+                  lambda: self._check_input(),
+                  lambda: self.tabs.setCurrentIndex(self.tabs.indexOf(self.tw['Sct_%i' % (self._n_sct_plns-1)]))]:
+            btn_scatter.clicked.connect(x)
         self.tabs.setCornerWidget(btn_scatter)
 
         # Proceed button
@@ -134,19 +136,22 @@ class SetupTab(QtWidgets.QWidget):
         self.data = data
 
         # Initiate tabs and initially check and handle each tabs content
-        self._init_setup(self.data['dut_names'])
+        self._init_painter()
         self._init_tabs()
         self._handle_dut_types()
         self._check_input()
 
-    def _init_setup(self, dut_names):
+    def _init_painter(self):
+        """
+        Inits the SetupPainter
+        """
 
         label_side = QtWidgets.QLabel('Schematic side-view:')
         label_top = QtWidgets.QLabel('Schematic top-view:')
 
-        self.side_view = SetupPainter(dut_names, self.left_widget)
+        self.side_view = SetupPainter(self.data['dut_names'], self.left_widget)
         self.side_view.draw_coordinate_system(axes=['z', 'x', 'y'])
-        self.top_view = SetupPainter(dut_names, self.left_widget)
+        self.top_view = SetupPainter(self.data['dut_names'], self.left_widget)
         self.top_view.draw_coordinate_system(axes=['z', 'y', '-x'])
 
         self.draw.addWidget(label_top)
@@ -174,60 +179,14 @@ class SetupTab(QtWidgets.QWidget):
             # Remove close buttons from actual DUT tabs
             self.tabs.tabBar().setTabButton(i, QtWidgets.QTabBar().RightSide, None)
 
-        # Connect widgets of all tabs
-        for dut in self.data['dut_names']:
-
-            # Connect set type button
-            self._type_widgets[dut]['button_t'].clicked.connect(
-                lambda: self._set_properties(
-                    self.data['dut_names'][self.tabs.currentIndex()],
-                    self._type_widgets[self.data['dut_names'][self.tabs.currentIndex()]]['combo_t'].currentText()))
-
-            # Connect handle type edit
-            self._handle_widgets[dut]['edit_h'].textChanged.connect(
-                lambda: self._handle_dut_types(self.data['dut_names'][self.tabs.currentIndex()]))
-
-            # Connect handle type button
-            self._handle_widgets[dut]['button_h'].clicked.connect(
-                lambda: self._handle_dut_types(self.data['dut_names'][self.tabs.currentIndex()], 'c'))
-
-            # Connect clear buttons
-            self._buttons[dut]['clear'].clicked.connect(
-                lambda: self._set_properties(self.data['dut_names'][self.tabs.currentIndex()]))
-
-            # Connect globalize buttons
-            self._buttons[dut]['global'].clicked.connect(
-                lambda: self._set_properties(self.data['dut_names'][self.tabs.currentIndex()], 'global'))
-
-            # Connect all input QLineEdit widgets
-            for prop in self._dut_props:
-
-                if prop == 'rot_alpha':
-                    self._dut_widgets[dut][prop].textChanged.connect(
-                        lambda text: self.top_view.set_rotation(self.data['dut_names'][self.tabs.currentIndex()],
-                                                                text))
-                if prop == 'rot_beta':
-                    self._dut_widgets[dut][prop].textChanged.connect(
-                        lambda text: self.side_view.set_rotation(self.data['dut_names'][self.tabs.currentIndex()],
-                                                                 text))
-                if prop == 'z_positions':
-                    self._dut_widgets[dut][prop].textChanged.connect(
-                        lambda text: self.side_view.set_z_pos(self.data['dut_names'][self.tabs.currentIndex()],
-                                                              text))
-                    self._dut_widgets[dut][prop].textChanged.connect(
-                        lambda: self.side_view.set_rotation(self.data['dut_names'][self.tabs.currentIndex()]))
-
-                    self._dut_widgets[dut][prop].textChanged.connect(
-                        lambda text: self.top_view.set_z_pos(self.data['dut_names'][self.tabs.currentIndex()],
-                                                             text))
-                    self._dut_widgets[dut][prop].textChanged.connect(
-                        lambda: self.top_view.set_rotation(self.data['dut_names'][self.tabs.currentIndex()]))
-
-                for x in [lambda: self._check_input(),
-                          lambda: self._handle_dut_types(self.data['dut_names'][self.tabs.currentIndex()])]:
-                    self._dut_widgets[dut][prop].textChanged.connect(x)
-
     def _add_dut(self, dut_name, scatter_plane=False, first_dut=False):
+        """
+        Adds a DUT/scatter plane tab with respective widgets for DUT properties to the SetubTab and makes connections
+
+        :param dut_name: str name of the DUT to add
+        :param scatter_plane: bool whether or not the plane to add is passive
+        :param first_dut: bool if True, z position is set fixed to 0
+        """
 
         # Spacing related numbers
         h_space = 10
@@ -296,6 +255,7 @@ class SetupTab(QtWidgets.QWidget):
         layout_setup.addWidget(edit_beta, 1, 3, 1, 1)
         layout_setup.addWidget(edit_gamma, 1, 4, 1, 1)
 
+        # Is DUT
         if not scatter_plane:
 
             # Make dut type selection layout
@@ -375,7 +335,7 @@ class SetupTab(QtWidgets.QWidget):
             edit_widgets = (edit_z, edit_alpha, edit_beta, edit_gamma, edit_pitch_col,
                             edit_pitch_row, edit_pixels_col, edit_pixels_row, edit_budget)
 
-            # Add these QLineEdit widgets to dict with respective dut as key to access the user input
+            # Add these QLineEdit widgets to dict with respective dut as key to access the user input and connect
             self._dut_widgets[dut_name] = {}
             for j, prop in enumerate(self._dut_props):
 
@@ -387,6 +347,49 @@ class SetupTab(QtWidgets.QWidget):
 
                 self._dut_widgets[dut_name][prop] = edit_widgets[j]
 
+                # Connect all input QLineEdit widgets
+                if prop == 'rot_alpha':
+                    self._dut_widgets[dut_name][prop].textChanged.connect(
+                        lambda rotation, dut=dut_name: self.top_view.set_rotation(dut=dut, rotation=rotation))
+                if prop == 'rot_beta':
+                    self._dut_widgets[dut_name][prop].textChanged.connect(
+                        lambda rotation, dut=dut_name: self.side_view.set_rotation(dut=dut, rotation=rotation))
+                if prop == 'z_positions':
+                    self._dut_widgets[dut_name][prop].textChanged.connect(
+                        lambda z, dut=dut_name: self.side_view.set_z_pos(dut=dut, z_position=z))
+                    self._dut_widgets[dut_name][prop].textChanged.connect(
+                        lambda _, dut=dut_name: self.side_view.set_rotation(dut=dut))
+                    self._dut_widgets[dut_name][prop].textChanged.connect(
+                        lambda z, dut=dut_name: self.top_view.set_z_pos(dut=dut, z_position=z))
+                    self._dut_widgets[dut_name][prop].textChanged.connect(
+                        lambda _, dut=dut_name: self.top_view.set_rotation(dut=dut))
+
+                for x in [lambda: self._check_input(),
+                          lambda _, dut=dut_name: self._handle_dut_types(dut=dut)]:
+                    self._dut_widgets[dut_name][prop].textChanged.connect(x)
+
+            # Connect set type button
+            self._type_widgets[dut_name]['button_t'].clicked.connect(
+                lambda _, dut=dut_name: self._set_properties(dut=dut,
+                                                             dut_type=self._type_widgets[dut]['combo_t'].currentText()))
+
+            # Connect handle type edit
+            self._handle_widgets[dut_name]['edit_h'].textEdited.connect(
+                lambda _, dut=dut_name: self._handle_dut_types(dut=dut))
+
+            # Connect handle type button
+            self._handle_widgets[dut_name]['button_h'].clicked.connect(
+                lambda _, dut=dut_name: self._handle_dut_types(dut=dut, mode='c'))
+
+            # Connect clear buttons
+            self._buttons[dut_name]['clear'].clicked.connect(
+                lambda _, dut=dut_name: self._set_properties(dut=dut))
+
+            # Connect globalize buttons
+            self._buttons[dut_name]['global'].clicked.connect(
+                lambda _, dut=dut_name: self._set_properties(dut=dut, dut_type='global'))
+
+        # Passive scatter plane
         else:
 
             self._n_sct_plns += 1
@@ -398,11 +401,29 @@ class SetupTab(QtWidgets.QWidget):
             # Make tuple of all QLineEdit widgets
             edit_widgets = (edit_z, edit_alpha, edit_beta, edit_gamma, edit_budget)
 
-            # Add these QLineEdit widgets to dict with respective dut as key to access the user input
+            # Add these QLineEdit widgets to dict with respective dut as key to access the user input and connect
             self._scatter_widgets[dut_name] = {}
             for j, prop in enumerate(self._scatter_props):
                 edit_widgets[j].setValidator(QtGui.QDoubleValidator())
                 self._scatter_widgets[dut_name][prop] = edit_widgets[j]
+
+                # Connect all input QLineEdit widgets
+                if prop == 'rot_alpha':
+                    self._scatter_widgets[dut_name][prop].textChanged.connect(
+                        lambda rotation, sct=dut_name: self.top_view.set_rotation(dut=sct, rotation=rotation))
+                if prop == 'rot_beta':
+                    self._scatter_widgets[dut_name][prop].textChanged.connect(
+                        lambda rotation, sct=dut_name: self.side_view.set_rotation(dut=sct, rotation=rotation))
+                if prop == 'z_positions':
+                    self._scatter_widgets[dut_name][prop].textChanged.connect(
+                        lambda z, sct=dut_name: self.side_view.set_z_pos(dut=sct, z_position=z, scatter=True))
+                    self._scatter_widgets[dut_name][prop].textChanged.connect(
+                        lambda _, sct=dut_name: self.side_view.set_rotation(dut=sct))
+                    self._scatter_widgets[dut_name][prop].textChanged.connect(
+                        lambda z, sct=dut_name: self.top_view.set_z_pos(dut=sct, z_position=z, scatter=True))
+                    self._scatter_widgets[dut_name][prop].textChanged.connect(
+                        lambda _, sct=dut_name: self.top_view.set_rotation(dut=sct))
+                self._scatter_widgets[dut_name][prop].textChanged.connect(lambda: self._check_input())
 
             self.top_view.draw_dut(dut_name=dut_name, factor=self.top_view.h_center, scatter=True)
             self.side_view.draw_dut(dut_name=dut_name, factor=self.side_view.h_center, scatter=True)
@@ -413,46 +434,18 @@ class SetupTab(QtWidgets.QWidget):
         layout.addWidget(QtWidgets.QLabel('Properties'))
         layout.addLayout(sl_2)
 
+        # Add to layout depending on DUT or scatter plane
         if not scatter_plane:
             layout.addLayout(layout_buttons)
             layout.addSpacing(h_space)
         else:
             layout.addStretch(0)
 
-            # Connect widgets of scatter tab
-            # Connect all input QLineEdit widgets
-            for prop in self._scatter_props:
-
-                if prop == 'rot_alpha':
-                    self._scatter_widgets[dut_name][prop].textChanged.connect(
-                        lambda text: self.top_view.set_rotation(self.tabs.tabText(self.tabs.currentIndex()),
-                                                                text))
-                if prop == 'rot_beta':
-                    self._scatter_widgets[dut_name][prop].textChanged.connect(
-                        lambda text: self.side_view.set_rotation(self.tabs.tabText(self.tabs.currentIndex()),
-                                                                 text))
-                if prop == 'z_positions':
-                    self._scatter_widgets[dut_name][prop].textChanged.connect(
-                        lambda text: self.side_view.set_z_pos(self.tabs.tabText(self.tabs.currentIndex()),
-                                                              text, scatter=True))
-                    self._scatter_widgets[dut_name][prop].textChanged.connect(
-                        lambda: self.side_view.set_rotation(self.tabs.tabText(self.tabs.currentIndex())))
-
-                    self._scatter_widgets[dut_name][prop].textChanged.connect(
-                        lambda text: self.top_view.set_z_pos(self.tabs.tabText(self.tabs.currentIndex()),
-                                                             text, scatter=True))
-                    self._scatter_widgets[dut_name][prop].textChanged.connect(
-                        lambda: self.top_view.set_rotation(self.tabs.tabText(self.tabs.currentIndex())))
-                self._scatter_widgets[dut_name][prop].textChanged.connect(lambda: self._check_input())
-
         # Add to tab widget dict
         self.tw[dut_name] = widget
 
         # Add tab to QTabWidget
         self.tabs.addTab(self.tw[dut_name], dut_name)
-
-        if scatter_plane:
-            self.tabs.setCurrentIndex(self.tabs.indexOf(self.tw[dut_name]))
 
     def _remove_dut(self, index):
         """
@@ -544,7 +537,7 @@ class SetupTab(QtWidgets.QWidget):
                 self.dut_data['n_pixels'].append((tmp_n_pixel['n_cols'], tmp_n_pixel['n_rows']))
                 self.dut_data['pixel_size'].append((tmp_pixel_size['pitch_col'], tmp_pixel_size['pitch_row']))
 
-            # FIXME: Kind of hardcoded. Repeating same code for DUTs and scatter plane, should be function
+            # TODO: Kind of hardcoded. Repeating same code for DUTs and scatter plane, should be function
             # Clear and initialize scatter data dict with correct keys necessary for track analysis before reading
             self.scatter_data = {'sct_names': [], 'alignment_scatter': [],
                                  'z_scatter': [], 'material_budget_scatter': []}
@@ -580,12 +573,12 @@ class SetupTab(QtWidgets.QWidget):
                     self.data[key] = self.dut_data[key]
 
             # Add dictionaries of scatter planes
-            if self.scatter_data:
+            if self.scatter_data['sct_names']:
                 self.data['scatter_planes'] = self.scatter_data
 
             self.isFinished = True
             self.analysisFinished.emit('Setup', self.tab_list)
-            self._disable_tab()
+            self.set_read_only()
 
         # Read only dut properties of custom dut type or remove/overwrite predefined type
         else:
@@ -736,7 +729,7 @@ class SetupTab(QtWidgets.QWidget):
                             if dut_name is not dut:
                                 l.append(dut_name)
                                 self._dut_widgets[dut_name][prop].setText(self._dut_widgets[dut][prop].text())
-                        if len(l) > 0:
+                        if l:
                             message = 'Set properties of %s as global properties for %s' % (dut, str(', ').join(l))
                             self._emit_message(message)
                 else:
@@ -768,7 +761,6 @@ class SetupTab(QtWidgets.QWidget):
         for dut in dut_list:
             for prop in properties:
 
-                # FIXME: test-wise excluding rotations and material budget from checking
                 if prop in ['rot_alpha', 'rot_beta', 'rot_gamma', 'material_budget']:
                     continue
 
@@ -782,7 +774,7 @@ class SetupTab(QtWidgets.QWidget):
                         in_put = self._scatter_widgets[dut][prop].text()
 
                 # Input not empty
-                if in_put:  # if len(in_put) > 0:
+                if in_put:
 
                     # Check whether required conversions of types are possible
                     try:
@@ -831,20 +823,87 @@ class SetupTab(QtWidgets.QWidget):
         if skip_props is None:
             self.btn_ok.setDisabled(broken)
 
+    def set_read_only(self, read_only=True):
+        """
+        Method to disable the tab while leaving some widgets on read-only in order to review setup
+        """
+        # Loop all tabs
+        for i, tab in enumerate(self.tw.keys()):
+
+            # Loop all widgets in DUT tab
+            if tab in self.data['dut_names']:
+                w_list = self._dut_widgets[tab].values() + self._handle_widgets[tab].values() \
+                         + self._type_widgets[tab].values() + self._buttons[tab].values()
+            # Loop all widgets in scatter plane tab
+            else:
+                w_list = self._scatter_widgets[tab].values()
+
+            # Remove close buttons from scatter tabs
+            self.tabs.tabBar().setTabButton(i, QtWidgets.QTabBar().RightSide, None)
+
+            # Disable all buttons, set all input widgets on read-only
+            for w in w_list:
+                if not isinstance(w, QtWidgets.QLabel):
+                    if isinstance(w, QtWidgets.QLineEdit):
+                        w.setReadOnly(read_only)
+                    else:
+                        w.setDisabled(read_only)
+
+        self.tabs.cornerWidget().setDisabled(read_only)
+        self.btn_ok.setDisabled(read_only)
+
+    def load_setup(self, setup):
+        """
+        Loads data from a saved setup into the SetubTab
+        """
+
+        # Required keys in setup
+        reqs = ('dut_names', 'rotations', 'pixel_size', 'n_pixels')
+
+        # Return if one key is missing
+        for req in reqs:
+            if req not in setup:
+                return
+
+        # Init some variables
+        sct_setup = setup['scatter_planes']
+        rotations = ['rot_alpha', 'rot_beta', 'rot_gamma']
+        pixel_size = ['pitch_col', 'pitch_row']
+        n_pixels = ['n_cols', 'n_rows']
+
+        # Init tabs for DUTs and fill with saved setup
+        self.input_data(setup)
+
+        for i, key in enumerate(setup['dut_names']):
+            for prop in self._dut_props:
+                if prop in rotations:
+                    self._dut_widgets[key][prop].setText(str(setup['rotations'][i][rotations.index(prop)]))
+                elif prop in pixel_size:
+                    self._dut_widgets[key][prop].setText(str(setup['pixel_size'][i][pixel_size.index(prop)]))
+                elif prop in n_pixels:
+                    self._dut_widgets[key][prop].setText(str(setup['n_pixels'][i][n_pixels.index(prop)]))
+                else:
+                    if prop in setup:
+                        self._dut_widgets[key][prop].setText(str(setup[prop][i]))
+
+        # If scatter planes in setup; add scatter plane and fill with saved setup
+        if sct_setup:
+            for i, key in enumerate(sct_setup['sct_names']):
+                self._add_dut(dut_name=key, scatter_plane=True)
+                for prop in self._scatter_props:
+                    if prop in rotations:
+                        self._scatter_widgets[key][prop].setText(str(sct_setup['alignment_scatter'][i][rotations.index(prop)]))
+                    elif prop == 'z_positions':
+                        self._scatter_widgets[key][prop].setText(str(sct_setup['z_scatter'][i]))
+                    elif prop == 'material_budget':
+                        self._scatter_widgets[key][prop].setText(str(sct_setup['material_budget_scatter'][i]))
+
     def _emit_message(self, message):
         """
         Emits statusMessage signal with message
         """
 
         self.statusMessage.emit(message)
-
-    def _disable_tab(self):
-
-        for dut in self.tw.keys():
-            self.tw[dut].setDisabled(True)
-
-        self.tabs.cornerWidget().setDisabled(True)
-        self.btn_ok.setDisabled(True)
 
 
 class SetupPainter(QtWidgets.QGraphicsView):
