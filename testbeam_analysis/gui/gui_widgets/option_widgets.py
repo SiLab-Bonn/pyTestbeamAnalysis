@@ -7,15 +7,15 @@
 import collections
 
 from PyQt5 import QtWidgets, QtCore, QtGui
+from testbeam_analysis.gui.gui_widgets.sliders import IntSlider, FloatSlider
 
 
-class OptionSlider(QtWidgets.QWidget):  # FIXME: steps size != 1 not supported
-    ''' Option slider for numbers
+class OptionSlider(QtWidgets.QWidget):
+    """
+    Option slider for floats and ints. Shows the value as text and can increase range
+    """
 
-        Shows the value as text and can increase range
-    '''
-
-    valueChanged = QtCore.pyqtSignal([object])  # Either int or float
+    valueChanged = QtCore.pyqtSignal(object)  # Either int or float
 
     def __init__(self, name, default_value, optional, tooltip, dtype, parent=None):
         super(OptionSlider, self).__init__(parent)
@@ -25,14 +25,12 @@ class OptionSlider(QtWidgets.QWidget):  # FIXME: steps size != 1 not supported
 
         # Slider with textbox to the right
         layout_2 = QtWidgets.QHBoxLayout()
-        slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+        slider = IntSlider(QtCore.Qt.Horizontal) if 'int' in self._dtype else FloatSlider(QtCore.Qt.Horizontal)
         self.edit = QtWidgets.QLineEdit()
         self.edit.setAlignment(QtCore.Qt.AlignCenter)
-        validator = QtGui.QDoubleValidator()
+        validator = QtGui.QIntValidator() if 'int' in self._dtype else QtGui.QDoubleValidator()
         self.edit.setValidator(validator)
-        #self.edit.setMaxLength(3)  #FIXME: No need for only 3 digits
-        size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred,
-                                            QtWidgets.QSizePolicy.Preferred)
+        size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         self.edit.setSizePolicy(size_policy)
         layout_2.addWidget(slider)
         layout_2.addWidget(self.edit)
@@ -49,9 +47,7 @@ class OptionSlider(QtWidgets.QWidget):  # FIXME: steps size != 1 not supported
             check_box = QtWidgets.QCheckBox()
             layout_1.addWidget(check_box)
             layout.addLayout(layout_1)
-
-            check_box.stateChanged.connect(
-                lambda v: self._set_readonly(v == 0))
+            check_box.stateChanged.connect(lambda v: self._set_readonly(v == 0))
             self._set_readonly()
         else:
             layout.addWidget(text)
@@ -59,33 +55,27 @@ class OptionSlider(QtWidgets.QWidget):  # FIXME: steps size != 1 not supported
 
         slider.valueChanged.connect(lambda v: self.edit.setText(str(v)))
         slider.valueChanged.connect(lambda _: self._emit_value())
-        self.edit.returnPressed.connect(
-            lambda: slider.setMaximum(max((float(self.edit.text()) * 2), 1)))
-        self.edit.returnPressed.connect(
-            lambda: slider.setValue(float(self.edit.text())))
+        self.edit.returnPressed.connect(lambda: slider.setMaximum(max((2 * float(self.edit.text())), 1)))
+        self.edit.returnPressed.connect(lambda: slider.setValue(float(self.edit.text())))
 
         if default_value is not None:
-            slider.setMaximum(max((default_value * 2, 1)))
+            slider.setMaximum(max((2 * default_value), 1))
             slider.setValue(default_value)
-            # Needed because set value does not issue a value changed
-            # if value stays constant
-            self.edit.setText(str(slider.value()))
+            self.edit.setText(str(slider.value()))  # Needed because set value does not issue a value changed
 
     def _set_readonly(self, value=True):
+
+        palette = QtGui.QPalette()
         if value:
-            palette = QtGui.QPalette()
             palette.setColor(QtGui.QPalette.Base, QtCore.Qt.gray)
             palette.setColor(QtGui.QPalette.Text, QtCore.Qt.darkGray)
-            self.edit.setPalette(palette)
-            self.edit.setReadOnly(True)
-            self._emit_value()
         else:
-            palette = QtGui.QPalette()
             palette.setColor(QtGui.QPalette.Base, QtCore.Qt.white)
             palette.setColor(QtGui.QPalette.Text, QtCore.Qt.black)
-            self.edit.setPalette(palette)
-            self.edit.setReadOnly(False)
-            self._emit_value()
+
+        self.edit.setReadOnly(value)
+        self.edit.setPalette(palette)
+        self._emit_value()
 
     def _emit_value(self):
         if self.edit.isReadOnly() or not self.edit.text():
@@ -97,10 +87,11 @@ class OptionSlider(QtWidgets.QWidget):  # FIXME: steps size != 1 not supported
 
 
 class OptionText(QtWidgets.QWidget):
-    ''' Option text for strings
-    '''
+    """
+    Option text for strings
+    """
 
-    valueChanged = QtCore.pyqtSignal(['QString'])
+    valueChanged = QtCore.pyqtSignal('QString')
 
     def __init__(self, name, default_value, optional, tooltip=None, parent=None):
         super(OptionText, self).__init__(parent)
@@ -117,8 +108,7 @@ class OptionText(QtWidgets.QWidget):
             layout_1.addWidget(check_box)
             layout.addLayout(layout_1)
 
-            check_box.stateChanged.connect(
-                lambda v: self._set_readonly(v == 0))
+            check_box.stateChanged.connect(lambda v: self._set_readonly(v == 0))
             if not default_value:
                 check_box.setCheckState(0)
                 self._set_readonly(True)
@@ -136,20 +126,17 @@ class OptionText(QtWidgets.QWidget):
             self.edit.setText(default_value)
 
     def _set_readonly(self, value=True):
+
+        palette = QtGui.QPalette()
         if value:
-            palette = QtGui.QPalette()
             palette.setColor(QtGui.QPalette.Base, QtCore.Qt.gray)
             palette.setColor(QtGui.QPalette.Text, QtCore.Qt.darkGray)
-            self.edit.setPalette(palette)
-            self.edit.setReadOnly(True)
-            self._emit_value()
         else:
-            palette = QtGui.QPalette()
             palette.setColor(QtGui.QPalette.Base, QtCore.Qt.white)
             palette.setColor(QtGui.QPalette.Text, QtCore.Qt.black)
-            self.edit.setPalette(palette)
-            self.edit.setReadOnly(False)
-            self._emit_value()
+        self.edit.setPalette(palette)
+        self.edit.setReadOnly(value)
+        self._emit_value()
 
     def _emit_value(self):
         if self.edit.isReadOnly():
@@ -158,55 +145,93 @@ class OptionText(QtWidgets.QWidget):
             self.valueChanged.emit(self.edit.text())
 
 
-class OptionBool(QtWidgets.QWidget):  # FIXME: optional not implemented
-    ''' Option bool for booleans
-    '''
+class OptionBool(QtWidgets.QWidget):
+    """
+    Option bool for booleans
+    """
 
-    valueChanged = QtCore.pyqtSignal(bool)
+    valueChanged = QtCore.pyqtSignal(object)
 
     def __init__(self, name, default_value, optional, tooltip=None, parent=None):
         super(OptionBool, self).__init__(parent)
-        rb_t = QtWidgets.QRadioButton('True')
-        rb_f = QtWidgets.QRadioButton('False')
+        self.rb_t = QtWidgets.QRadioButton('True')
+        self.rb_f = QtWidgets.QRadioButton('False')
         layout_b = QtWidgets.QHBoxLayout()
-        layout_b.addWidget(rb_t)
-        layout_b.addWidget(rb_f)
+        layout_b.addWidget(self.rb_t)
+        layout_b.addWidget(self.rb_f)
 
         layout = QtWidgets.QVBoxLayout(self)
 
         text = QtWidgets.QLabel(name)
-        layout.addWidget(text)
+
+        if optional:
+            layout_1 = QtWidgets.QHBoxLayout()
+            layout_1.addWidget(text)
+            layout_1.addStretch(0)
+            check_box = QtWidgets.QCheckBox()
+            layout_1.addWidget(check_box)
+            layout.addLayout(layout_1)
+
+            check_box.stateChanged.connect(lambda v: self._set_readonly(v == 0))
+            if not default_value:
+                check_box.setCheckState(0)
+                self._set_readonly(True)
+        else:
+            layout.addWidget(text)
+
         layout.addLayout(layout_b)
 
-        rb_t.toggled.connect(lambda: self.valueChanged.emit(rb_t.isChecked()))
+        self.rb_t.toggled.connect(self._emit_value)
 
         if tooltip:
             text.setToolTip(tooltip)
 
         if default_value is not None:
-            rb_t.setChecked(default_value is True)
-            rb_f.setChecked(default_value is False)
+            self.rb_t.setChecked(default_value is True)
+            self.rb_f.setChecked(default_value is False)
+
+    def _set_readonly(self, value=True):
+
+        palette = QtGui.QPalette()
+        if value:
+            palette.setColor(QtGui.QPalette.Base, QtCore.Qt.gray)
+            palette.setColor(QtGui.QPalette.Text, QtCore.Qt.darkGray)
+        else:
+            palette.setColor(QtGui.QPalette.Base, QtCore.Qt.white)
+            palette.setColor(QtGui.QPalette.Text, QtCore.Qt.black)
+        self.rb_f.setPalette(palette)
+        self.rb_t.setPalette(palette)
+        self.rb_f.setEnabled(not value)
+        self.rb_t.setEnabled(not value)
+        self._emit_value()
+
+    def _emit_value(self):
+        if not self.rb_t.isEnabled() and not self.rb_f.isEnabled():
+            self.valueChanged.emit('None')
+        else:
+            self.valueChanged.emit(self.rb_t.isChecked())
 
 
-# FIXME: steps size != 1 not supported
 class OptionMultiSlider(QtWidgets.QWidget):
-    ''' Option sliders for several numbers
-
-        Shows the value as text and can increase range
-    '''
+    """
+    Option sliders for several ints or floats. Shows the value as text and can increase range
+    """
 
     valueChanged = QtCore.pyqtSignal(list)
 
-    def __init__(self, name, labels, default_value, optional, tooltip, parent=None):
+    def __init__(self, name, labels, default_value, optional, tooltip, dtype, parent=None):
         super(OptionMultiSlider, self).__init__(parent)
+
+        # Store dtype
+        self._dtype = dtype
+
         # Check default value
         if default_value is None:  # None is only supported for all values
             default_value = 0.
         if not isinstance(default_value, collections.Iterable):
             default_value = [default_value] * len(labels)
         if len(labels) != len(default_value):
-            raise ValueError(
-                'Number of default values does not match number of parameters')
+            raise ValueError('Number of default values does not match number of parameters')
 
         max_val = max((max(default_value) * 2, 1))
 
@@ -225,19 +250,21 @@ class OptionMultiSlider(QtWidgets.QWidget):
         else:
             layout.addWidget(text)
 
+        # List for edits
         self.edits = []
+
+        # Validator for edits
+        validator = QtGui.QIntValidator() if 'int' in self._dtype else QtGui.QDoubleValidator()
 
         for i, label in enumerate(labels):  # Create one slider per label
             # Slider with textbox to the right
             layout_label = QtWidgets.QHBoxLayout()
-            slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+            slider = IntSlider(QtCore.Qt.Horizontal) if 'int' in self._dtype else FloatSlider(QtCore.Qt.Horizontal)
             # Text edit
             edit = QtWidgets.QLineEdit()
             edit.setAlignment(QtCore.Qt.AlignCenter)
-            edit.setValidator(QtGui.QDoubleValidator())
-            #edit.setMaxLength(3)  #FIXME: No need for only 3 digits
-            size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred,
-                                                QtWidgets.QSizePolicy.Preferred)
+            edit.setValidator(validator)
+            size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
             edit.setSizePolicy(size_policy)
             layout_label.addWidget(QtWidgets.QLabel('  ' + label))
             layout_label.addWidget(slider)
@@ -245,74 +272,71 @@ class OptionMultiSlider(QtWidgets.QWidget):
 
             # Crazy shit: lambda late binding has to be prevented here
             # http://docs.python-guide.org/en/latest/writing/gotchas/
-            slider.valueChanged.connect(
-                lambda v, edit=edit: edit.setText(str(v)))
+            slider.valueChanged.connect(lambda v, e=edit: e.setText(str(v)))
             slider.valueChanged.connect(lambda _: self._emit_value())
-            edit.returnPressed.connect(lambda slider=slider, edit=edit: slider.setMaximum(
-                max(float(edit.text()) * 2, 1)))
-            edit.returnPressed.connect(
-                lambda slider=slider, edit=edit: slider.setValue(float(edit.text())))
+            edit.returnPressed.connect(lambda s=slider, e=edit: s.setMaximum(max(float(e.text()) * 2, 1)))
+            edit.returnPressed.connect(lambda s=slider, e=edit: s.setValue(float(e.text())))
 
             slider.setMaximum(max_val)
             slider.setValue(default_value[i])
-            # Needed because set value does not issue a value changed
-            # if value stays constant
-            edit.setText(str(slider.value()))
+            edit.setText(str(slider.value())) # Needed because set value does not issue a value changed
 
             self.edits.append(edit)
 
             layout.addLayout(layout_label)
 
         if optional:
-            check_box.stateChanged.connect(
-                lambda v: self._set_readonly(v == 0))
+            check_box.stateChanged.connect(lambda v: self._set_readonly(v == 0))
             self._set_readonly()
 
     def _set_readonly(self, value=True):
+
+        palette = QtGui.QPalette()
         if value:
-            palette = QtGui.QPalette()
             palette.setColor(QtGui.QPalette.Base, QtCore.Qt.gray)
             palette.setColor(QtGui.QPalette.Text, QtCore.Qt.darkGray)
-            for edit in self.edits:
-                edit.setPalette(palette)
-                edit.setReadOnly(True)
-            self._emit_value()
         else:
-            palette = QtGui.QPalette()
             palette.setColor(QtGui.QPalette.Base, QtCore.Qt.white)
             palette.setColor(QtGui.QPalette.Text, QtCore.Qt.black)
-            for edit in self.edits:
-                edit.setPalette(palette)
-                edit.setReadOnly(False)
-            self._emit_value()
+        for edit in self.edits:
+            edit.setPalette(palette)
+            edit.setReadOnly(value)
+        self._emit_value()
 
     def _emit_value(self):
         if not any([edit.isReadOnly() for edit in self.edits]):
-            values = [int(edit.text()) for edit in self.edits]
+            values = [int(edit.text()) if 'int' in self._dtype else float(edit.text()) for edit in self.edits]
         else:
             values = [None]
+
         self.valueChanged.emit(values)
 
 
-class OptionMultiBox(QtWidgets.QWidget):
-    ''' Option boxes 2(NxN) or 1(N) dimensions
-    '''
+class OptionMultiCheckBox(QtWidgets.QWidget):
+    """
+    Option boxes 2(NxN) or 1(N) dimensions
+    """
+    # TODO: Show default selection on init
 
     valueChanged = QtCore.pyqtSignal(list)
+    selectionChanged = QtCore.pyqtSignal(dict)
 
     def __init__(self, name, labels_x, default_value, optional, tooltip, labels_y=None, parent=None):
-        super(OptionMultiBox, self).__init__(parent)
+        super(OptionMultiCheckBox, self).__init__(parent)
 
-        # different color palettes to visualize disabled widgets
-        # disabled
-        self.palette_dis = QtGui.QPalette()
+        # Store some values
+        self.name = name
+        self.selection = None
+
+        # Different color palettes to visualize disabled widgets
+        self.palette_dis = QtGui.QPalette()  # Disabled
         self.palette_dis.setColor(QtGui.QPalette.Base, QtCore.Qt.gray)
         self.palette_dis.setColor(QtGui.QPalette.Text, QtCore.Qt.darkGray)
-        # enabled
-        self.palette_en = QtGui.QPalette()
+        self.palette_en = QtGui.QPalette()  # Enabled
         self.palette_en.setColor(QtGui.QPalette.Base, QtCore.Qt.white)
         self.palette_en.setColor(QtGui.QPalette.Text, QtCore.Qt.black)
 
+        # Dimensions of widgets in x and y
         nx = len(labels_x)
         ny = len(labels_y) if labels_y else 1
 
@@ -339,7 +363,7 @@ class OptionMultiBox(QtWidgets.QWidget):
         layout_iter = QtWidgets.QGridLayout()
         offset = 1 if labels_y else 0
 
-        # Matrix with checkboxes
+        # Store matrix with checkboxes
         self.check_boxes = []
 
         for i, label in enumerate(labels_x):
@@ -421,49 +445,273 @@ class OptionMultiBox(QtWidgets.QWidget):
                         self.check_boxes[j][sender_row].setDisabled(False)
                         self.check_boxes[j][sender_row].setPalette(self.palette_en)
 
+    def enable_selection(self, selection=None):
+
+        if selection:
+            self.selection = selection
+
+        if self.selection and None not in self.selection and not self._all_disabled():
+
+            # Disable all checkboxes
+            for cb in self.check_boxes:
+                if isinstance(cb, collections.Iterable):
+                    for cb_1 in cb:
+                        cb_1.setDisabled(True)
+                        cb_1.setPalette(self.palette_dis)
+                else:
+                    cb.setDisabled(True)
+                    cb.setPalette(self.palette_dis)
+
+            # Enable checkboxes in selection
+            for i in self.selection.keys():
+                if isinstance(self.selection[i], collections.Iterable):
+                    for j in self.selection[i]:
+                        self.check_boxes[i][j].setEnabled(True)
+                        self.check_boxes[i][j].setPalette(self.palette_en)
+                else:
+                    for j in range(len(self.check_boxes)):
+                        try:
+                            self.check_boxes[i][j].setEnabled(True)
+                            self.check_boxes[i][j].setPalette(self.palette_en)
+                        except IndexError:
+                            self.check_boxes[i].setEnabled(True)
+                            self.check_boxes[i].setPalette(self.palette_en)
+
+            # Uncheck checkboxes which were checked before and are not in selection
+            for cb in self.check_boxes:
+                if isinstance(cb, collections.Iterable):
+                    for cb_1 in cb:
+                        if cb_1.isChecked() and not cb_1.isEnabled():
+                            cb_1.setChecked(False)
+                else:
+                    if cb.isChecked() and not cb.isEnabled():
+                        cb.setChecked(False)
+
+            self._emit_value()
+
+    def _all_disabled(self):
+
+        states = []
+        for i in range(len(self.check_boxes)):
+            if isinstance(self.check_boxes[i], collections.Iterable):
+                for j in range(len(self.check_boxes[i])):
+                    states.append(self.check_boxes[i][j].isEnabled())
+            else:
+                states.append(self.check_boxes[i].isEnabled())
+        return not any(states)
+
     def _get_values(self):
 
         values = []
+        self.duts_vals = {}
         for i in range(len(self.check_boxes)):
             tmp = []
             if isinstance(self.check_boxes[i], collections.Iterable):
+
                 for j in range(len(self.check_boxes[i])):
-                    if self.check_boxes[i][j].isChecked():
+                    if self.check_boxes[i][j].isChecked() and self.check_boxes[i][j].isEnabled():
                         tmp.append(j)
             else:
-                if self.check_boxes[i].isChecked():
+                if self.check_boxes[i].isChecked() and self.check_boxes[i].isChecked():
                     values.append(i)
+                    self.duts_vals[i] = i
                     continue
             if tmp:
                 values.append(tmp)
+                self.duts_vals[i] = tmp
 
-        if not values:
+        if not values or self._all_disabled():
             values = [None]
+            self.duts_vals = {}
 
         return values
 
     def _set_readonly(self, value=True):
-        if value:
-            for cb in self.check_boxes:
-                if isinstance(cb, collections.Iterable):
-                    for cb_1 in cb:
-                        cb_1.setPalette(self.palette_dis)
-                        cb_1.setDisabled(True)
-                else:
-                    cb.setPalette(self.palette_dis)
-                    cb.setDisabled(True)
-            self._emit_value()
-        else:
-            for cb in self.check_boxes:
-                if isinstance(cb, collections.Iterable):
-                    for cb_1 in cb:
-                        cb_1.setPalette(self.palette_en)
-                        cb_1.setDisabled(False)
-                else:
-                    cb.setPalette(self.palette_en)
-                    cb.setDisabled(False)
-            self._emit_value()
+
+        for cb in self.check_boxes:
+            if isinstance(cb, collections.Iterable):
+                for cb_1 in cb:
+                    cb_1.setPalette(self.palette_dis if value else self.palette_en)
+                    cb_1.setDisabled(value)
+            else:
+                cb.setPalette(self.palette_dis if value else self.palette_en)
+                cb.setDisabled(value)
+        if not value:
+            self.enable_selection()
+        self._emit_value()
 
     def _emit_value(self):
         values = self._get_values()
         self.valueChanged.emit(values)
+        self.selectionChanged.emit(self.duts_vals)
+
+
+class OptionMultiSpinBox(QtWidgets.QWidget):
+    """
+    Option spin boxes 2(NxN) or 1(N) dimensions
+    """
+
+    valueChanged = QtCore.pyqtSignal(object)
+    selectionChanged = QtCore.pyqtSignal(dict)
+
+    def __init__(self, name, labels_x, default_value, optional, tooltip, labels_y=None, parent=None):
+        super(OptionMultiSpinBox, self).__init__(parent)
+
+        # Store some values
+        self.name = name
+        self.selection = None
+        self.default_value = default_value
+
+        # Different color palettes to visualize disabled widgets
+        self.palette_dis = QtGui.QPalette()  # Disabled
+        self.palette_dis.setColor(QtGui.QPalette.Base, QtCore.Qt.gray)
+        self.palette_dis.setColor(QtGui.QPalette.Text, QtCore.Qt.darkGray)
+        self.palette_en = QtGui.QPalette()  # Enabled
+        self.palette_en.setColor(QtGui.QPalette.Base, QtCore.Qt.white)
+        self.palette_en.setColor(QtGui.QPalette.Text, QtCore.Qt.black)
+
+        # Dimensions of widgets in x and y
+        nx = len(labels_x)
+        ny = len(labels_y) if labels_y else 1
+
+        # Check default value
+        if default_value is None:  # None is only supported for all values
+            default_value = [[None] * ny] * nx
+
+        # Option name name with boxes below
+        layout = QtWidgets.QVBoxLayout(self)
+        text = QtWidgets.QLabel(name)
+        if tooltip:
+            text.setToolTip(tooltip)
+        if optional:  # Values can be unset
+            layout_1 = QtWidgets.QHBoxLayout()
+            layout_1.addWidget(text)
+            layout_1.addStretch(0)
+            check_box_opt = QtWidgets.QCheckBox()
+            layout_1.addWidget(check_box_opt)
+            layout.addLayout(layout_1)
+        else:
+            layout.addWidget(text)
+
+        # Layout for spin boxes
+        layout_iter = QtWidgets.QGridLayout()
+        offset = 1 if labels_y else 0
+
+        # Matrix with checkboxes
+        self.spin_boxes = []
+
+        for i, label in enumerate(labels_x):
+            layout_iter.addWidget(QtWidgets.QLabel(label), 0, i + offset, alignment=QtCore.Qt.AlignCenter)
+            tmp = []
+            for j in range(ny):
+                if labels_y and not i:
+                    layout_iter.addWidget(QtWidgets.QLabel('  ' + labels_y[j]), j + 1, 0)
+                spin_box = QtWidgets.QSpinBox()
+                spin_box.setRange(default_value - 1, default_value + 1)  # FIXME: should be any range
+                spin_box.setValue(default_value)
+                spin_box.valueChanged.connect(self._emit_value)
+
+                if ny == 1:
+                    self.spin_boxes.append(spin_box)
+                else:
+                    tmp.append(spin_box)
+                layout_iter.addWidget(spin_box, j + 1, i + offset, alignment=QtCore.Qt.AlignCenter)
+            if ny != 1:
+                self.spin_boxes.append(tmp)
+        layout.addLayout(layout_iter)
+
+        if optional:
+            check_box_opt.stateChanged.connect(lambda v: self._set_readonly(v == 0))
+            self._set_readonly()
+
+        self._emit_value()
+
+    def enable_selection(self, selection=None):
+
+        if selection:
+            self.selection = selection
+
+        if self.selection and None not in self.selection and not self._all_disabled():
+
+            # Disable all spin boxes
+            for sb in self.spin_boxes:
+                if isinstance(sb, collections.Iterable):
+                    for sb_1 in sb:
+                        sb_1.setDisabled(True)
+                        sb_1.setPalette(self.palette_dis)
+                else:
+                    sb.setDisabled(True)
+                    sb.setPalette(self.palette_dis)
+
+            # Enable spin boxes in selection
+            for i in self.selection.keys():
+                if isinstance(self.selection[i], collections.Iterable):
+                    for j in self.selection[i]:
+                        self.spin_boxes[i][j].setEnabled(True)
+                        self.spin_boxes[i][j].setPalette(self.palette_en)
+                else:
+                    for j in range(len(self.spin_boxes)):
+                        try:
+                            self.spin_boxes[i][j].setEnabled(True)
+                            self.spin_boxes[i][j].setPalette(self.palette_en)
+                        except IndexError:
+                            self.spin_boxes[i].setEnabled(True)
+                            self.spin_boxes[i].setPalette(self.palette_en)
+
+            self._emit_value()
+
+    def _all_disabled(self):
+
+        states = []
+        for i in range(len(self.spin_boxes)):
+            if isinstance(self.spin_boxes[i], collections.Iterable):
+                for j in range(len(self.spin_boxes[i])):
+                    states.append(self.spin_boxes[i][j].isEnabled())
+            else:
+                states.append(self.spin_boxes[i].isEnabled())
+        return not any(states)
+
+    def _get_values(self):
+
+        values = []
+        self.duts_vals = {}
+        for i in range(len(self.spin_boxes)):
+            tmp = []
+            if isinstance(self.spin_boxes[i], collections.Iterable):
+                for j in range(len(self.spin_boxes[i])):
+                    if self.spin_boxes[i][j].isEnabled():
+                        tmp.append(self.spin_boxes[i][j].value())
+            else:
+                if self.spin_boxes[i].isEnabled():
+                    values.append(self.spin_boxes[i].value())
+                    self.duts_vals[i] = i
+                    continue
+            if tmp:
+                values.append(tmp)
+                self.duts_vals[i] = tmp
+
+        if not values or self._all_disabled():
+            # FIXME: Default value of selection_track_quality=1 needs to be set instead of None when optional
+            values = [None] if self.default_value is None else self.default_value
+            self.duts_vals = {}
+
+        return values
+
+    def _set_readonly(self, value=True):
+
+        for sb in self.spin_boxes:
+            if isinstance(sb, collections.Iterable):
+                for sb_1 in sb:
+                    sb_1.setPalette(self.palette_dis if value else self.palette_en)
+                    sb_1.setDisabled(value)
+            else:
+                sb.setPalette(self.palette_dis if value else self.palette_en)
+                sb.setDisabled(value)
+        if not value:
+            self.enable_selection()
+        self._emit_value()
+
+    def _emit_value(self):
+        values = self._get_values()
+        self.valueChanged.emit(values)
+        self.selectionChanged.emit(self.duts_vals)

@@ -272,12 +272,14 @@ class AnalysisWidget(QtWidgets.QWidget):
 
         if not fixed:  # Option value can be changed
             try:
-                widget = self._select_widget(dtype, name, default_value, optional, tooltip)
+                widget = self._select_widget(dtype, name, default_value, optional, tooltip, func)
             except NotImplementedError:
                 logging.warning('Cannot create option %s for dtype "%s" for function %s', option, dtype, func.__name__)
                 return
 
-            self._set_argument(func, option, default_value if not optional else None)
+            # TODO: Why not allow default value other than None for optional? This implies all optinals default value is None
+            # self._set_argument(func, option, default_value if not optional else None)
+            self._set_argument(func, option, default_value)  # Allow to set optional for default values other than None
             self.option_widgets[option] = widget
             self.option_widgets[option].valueChanged.connect(lambda value: self._set_argument(func, option, value))
 
@@ -313,17 +315,17 @@ class AnalysisWidget(QtWidgets.QWidget):
             self.opt_fixed.addWidget(text)
             self.calls[func][option] = default_value
 
-    def _select_widget(self, dtype, name, default_value, optional, tooltip):
+    def _select_widget(self, dtype, name, default_value, optional, tooltip, func):
         # Create widget according to data type
         if ('scalar' in dtype and ('tuple' in dtype or 'iterable' in dtype) or
                         'int' in dtype and ('tuple' in dtype or 'iterable' in dtype) or
-                ('iterable' in dtype and 'iterable of iterable' not in dtype and 'duts' not in name)):
-            widget = option_widgets.OptionMultiSlider(
-                name=name, labels=self.setup['dut_names'],
-                default_value=default_value,
-                optional=optional, tooltip=tooltip, parent=self)
-        elif 'iterable of iterable' in dtype or 'iterable' in dtype and 'duts' in name:
+                ('iterable' in dtype and 'iterable of iterable' not in dtype and 'duts' not in name)) and 'quality' not in name:
+            widget = option_widgets.OptionMultiSlider(name=name, labels=self.setup['dut_names'],
+                                                      default_value=default_value, optional=optional,
+                                                      dtype=dtype, tooltip=tooltip, parent=self)
+        elif ('iterable of iterable' in dtype or 'iterable' in dtype) and ('duts' in name or 'quality' in name):
 
+            # Init labels
             labels_x = self.setup['dut_names']
             labels_y = self.setup['dut_names']
 
@@ -331,12 +333,20 @@ class AnalysisWidget(QtWidgets.QWidget):
             if 'iterable of iterable' not in dtype and 'duts' in name:
                 labels_y = None
 
-            if name in ['Align duts']:
+            if func.__name__ == 'alignment' and 'selection' in name.lower() or 'align' in name.lower():
                 labels_x = ['Align %i.' % (i + 1) for i in range(self.setup['n_duts'])]
 
-            widget = option_widgets.OptionMultiBox(
-                name=name, labels_x=labels_x, default_value=default_value, optional=optional,
-                tooltip=tooltip, labels_y=labels_y, parent=self)
+            elif func.__name__ == 'fit_tracks' and 'selection' in name.lower():
+                labels_x = ['Fit ' + dut for dut in labels_x]
+
+            if 'duts' in name:
+                widget = option_widgets.OptionMultiCheckBox(
+                    name=name, labels_x=labels_x, default_value=default_value, optional=optional,
+                    tooltip=tooltip, labels_y=labels_y, parent=self)
+            elif 'quality' in name:
+                widget = option_widgets.OptionMultiSpinBox(
+                    name=name, labels_x=labels_x, default_value=default_value, optional=optional,
+                    tooltip=tooltip, labels_y=labels_y, parent=self)
         elif 'str' in dtype:
             widget = option_widgets.OptionText(
                 name, default_value, optional, tooltip, parent=self)

@@ -312,12 +312,6 @@ class AlignmentTab(AnalysisWidget):
 
         self.output_file = os.path.join(options['output_path'], 'Tracklets.h5')
 
-        # define default matrix for iterable of iterable dtype with tr(def_matrix) = 0
-        def_matrix = [[i if i != j else None for i in range(setup['n_duts'])] for j in range(setup['n_duts'])]
-
-        for col in def_matrix:
-            col.remove(None)
-
         self.add_function(func=alignment)
         self.add_function(func=apply_alignment)
 
@@ -332,17 +326,21 @@ class AlignmentTab(AnalysisWidget):
                         fixed=True)
 
         self.add_option(option='align_duts',
-                        default_value=[range(setup['n_duts'])],
-                        func=alignment,
-                        optional=True)
-
-        self.add_option(option='selection_fit_duts',
-                        default_value=def_matrix,
+                        #default_value=[range(setup['n_duts'])],
                         func=alignment,
                         optional=True)
 
         self.add_option(option='selection_hit_duts',
-                        default_value=def_matrix,
+                        #default_value=[range(setup['n_duts'])],
+                        func=alignment,
+                        optional=True)
+
+        self.add_option(option='selection_fit_duts',
+                        #default_value=[range(setup['n_duts'])],
+                        func=alignment,
+                        optional=True)
+
+        self.add_option(option='selection_track_quality',
                         func=alignment,
                         optional=True)
 
@@ -379,6 +377,17 @@ class AlignmentTab(AnalysisWidget):
         for x in [lambda: self._connect_vitables(files=self.output_file),
                   lambda: self.btn_skip.deleteLater()]:
             self.analysisFinished.connect(x)
+
+        # Connect options widgets depending on each other
+        self.option_widgets['align_duts'].selectionChanged.connect(lambda sel:
+                                                                   self.option_widgets[
+                                                                       'selection_hit_duts'].enable_selection(sel))
+        self.option_widgets['selection_hit_duts'].selectionChanged.connect(lambda sel:
+                                                                           self.option_widgets[
+                                                                               'selection_fit_duts'].enable_selection(sel))
+        self.option_widgets['selection_hit_duts'].selectionChanged.connect(lambda sel:
+                                                                           self.option_widgets[
+                                                                               'selection_track_quality'].enable_selection(sel))
 
         self.btn_skip = QtWidgets.QPushButton('Skip')
         self.btn_skip.setToolTip('Skip alignment and use pre-alignment for further analysis')
@@ -452,7 +461,7 @@ class TrackFittingTab(AnalysisWidget):
 
         self.add_function(func=fit_tracks)
 
-        # define default matrix for iterable of iterable dtype with tr(def_matrix) = dim * None
+        # define default matrix for iterable of iterable selection_fit/hit_duts
         def_matrix = [[i if i != j else None for i in range(setup['n_duts'])] for j in range(setup['n_duts'])]
 
         for col in def_matrix:
@@ -473,20 +482,35 @@ class TrackFittingTab(AnalysisWidget):
                         func=fit_tracks,
                         fixed=True)
 
+        self.add_option(option='fit_duts',
+                        func=fit_tracks,
+                        #default_value=range(setup['n_duts']),
+                        optional=True)
+
         self.add_option(option='selection_hit_duts',
-                        default_value=def_matrix,
+                        #default_value=def_matrix,
                         func=fit_tracks,
                         optional=True)
 
         self.add_option(option='selection_fit_duts',
-                        default_value=def_matrix,
+                        #default_value=def_matrix,
                         func=fit_tracks,
                         optional=True)
 
-        self.add_option(option='fit_duts',
+        self.add_option(option='selection_track_quality',
                         func=fit_tracks,
-                        default_value=range(setup['n_duts']),
                         optional=True)
+
+        # Connect options widgets depending on each other
+        self.option_widgets['fit_duts'].selectionChanged.connect(lambda sel:
+                                                                 self.option_widgets[
+                                                                     'selection_hit_duts'].enable_selection(sel))
+        self.option_widgets['selection_hit_duts'].selectionChanged.connect(lambda sel:
+                                                                           self.option_widgets[
+                                                                               'selection_fit_duts'].enable_selection(sel))
+        self.option_widgets['selection_hit_duts'].selectionChanged.connect(lambda sel:
+                                                                           self.option_widgets[
+                                                                               'selection_track_quality'].enable_selection(sel))
 
         # Set and fix options
         self.add_option(option='force_prealignment', func=fit_tracks,
