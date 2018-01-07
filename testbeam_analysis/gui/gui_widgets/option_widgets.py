@@ -22,6 +22,8 @@ class OptionSlider(QtWidgets.QWidget):
 
         # Store dtype
         self._dtype = dtype
+        self.default_value = default_value
+        self.update_tooltip(default_value)
 
         # Slider with textbox to the right
         layout_2 = QtWidgets.QHBoxLayout()
@@ -63,6 +65,9 @@ class OptionSlider(QtWidgets.QWidget):
             slider.setValue(default_value)
             self.edit.setText(str(slider.value()))  # Needed because set value does not issue a value changed
 
+    def update_tooltip(self, val):
+        self.setToolTip('Current value: {}, (default value: {})'.format(val, self.default_value))
+
     def _set_readonly(self, value=True):
 
         palette = QtGui.QPalette()
@@ -79,10 +84,13 @@ class OptionSlider(QtWidgets.QWidget):
 
     def _emit_value(self):
         if self.edit.isReadOnly() or not self.edit.text():
-            self.valueChanged.emit(float('nan'))
+            value = float('nan') if self.default_value is None else self.default_value
+            self.update_tooltip(value)
+            self.valueChanged.emit(value)
         else:
             # Separate options that need int dtypes e.g. range(int) from floats
             value = int(self.edit.text()) if 'int' in self._dtype else float(self.edit.text())
+            self.update_tooltip(value)
             self.valueChanged.emit(value)
 
 
@@ -95,6 +103,10 @@ class OptionText(QtWidgets.QWidget):
 
     def __init__(self, name, default_value, optional, tooltip=None, parent=None):
         super(OptionText, self).__init__(parent)
+
+        self.default_value = default_value
+        self.update_tooltip(default_value)
+
         self.edit = QtWidgets.QLineEdit()
         self.edit.setAlignment(QtCore.Qt.AlignCenter)
         layout = QtWidgets.QVBoxLayout(self)
@@ -125,6 +137,9 @@ class OptionText(QtWidgets.QWidget):
         if default_value is not None:
             self.edit.setText(default_value)
 
+    def update_tooltip(self, val):
+        self.setToolTip('Current value: {}, (default value: {})'.format(val, self.default_value))
+
     def _set_readonly(self, value=True):
 
         palette = QtGui.QPalette()
@@ -140,8 +155,11 @@ class OptionText(QtWidgets.QWidget):
 
     def _emit_value(self):
         if self.edit.isReadOnly():
-            self.valueChanged.emit('None')
+            value = 'None' if self.default_value is None else self.default_value
+            self.update_tooltip(value)
+            self.valueChanged.emit(value)
         else:
+            self.update_tooltip(self.edit.text())
             self.valueChanged.emit(self.edit.text())
 
 
@@ -154,6 +172,10 @@ class OptionBool(QtWidgets.QWidget):
 
     def __init__(self, name, default_value, optional, tooltip=None, parent=None):
         super(OptionBool, self).__init__(parent)
+
+        self.default_value = default_value
+        self.update_tooltip(default_value)
+
         self.rb_t = QtWidgets.QRadioButton('True')
         self.rb_f = QtWidgets.QRadioButton('False')
         layout_b = QtWidgets.QHBoxLayout()
@@ -190,6 +212,9 @@ class OptionBool(QtWidgets.QWidget):
             self.rb_t.setChecked(default_value is True)
             self.rb_f.setChecked(default_value is False)
 
+    def update_tooltip(self, val):
+        self.setToolTip('Current value: {}, (default value: {})'.format(val, self.default_value))
+
     def _set_readonly(self, value=True):
 
         palette = QtGui.QPalette()
@@ -207,8 +232,11 @@ class OptionBool(QtWidgets.QWidget):
 
     def _emit_value(self):
         if not self.rb_t.isEnabled() and not self.rb_f.isEnabled():
-            self.valueChanged.emit('None')
+            value = 'None' if self.default_value is None else self.default_value
+            self.update_tooltip(value)
+            self.valueChanged.emit(value)
         else:
+            self.update_tooltip(self.rb_t.isChecked())
             self.valueChanged.emit(self.rb_t.isChecked())
 
 
@@ -224,6 +252,8 @@ class OptionMultiSlider(QtWidgets.QWidget):
 
         # Store dtype
         self._dtype = dtype
+        self.default_value = default_value
+        self.update_tooltip(default_value)
 
         # Check default value
         if default_value is None:  # None is only supported for all values
@@ -288,6 +318,11 @@ class OptionMultiSlider(QtWidgets.QWidget):
         if optional:
             check_box.stateChanged.connect(lambda v: self._set_readonly(v == 0))
             self._set_readonly()
+        else:
+            self._emit_value()  # FIXME: Why is this necessary to correctly set default value? Else one value is missing
+
+    def update_tooltip(self, val):
+        self.setToolTip('Current value: {}, (default value: {})'.format(val, self.default_value))
 
     def _set_readonly(self, value=True):
 
@@ -307,8 +342,8 @@ class OptionMultiSlider(QtWidgets.QWidget):
         if not any([edit.isReadOnly() for edit in self.edits]):
             values = [int(edit.text()) if 'int' in self._dtype else float(edit.text()) for edit in self.edits]
         else:
-            values = [None]
-
+            values = [None] if self.default_value is None else self.default_value
+        self.update_tooltip(values)
         self.valueChanged.emit(values)
 
 
@@ -316,7 +351,6 @@ class OptionMultiCheckBox(QtWidgets.QWidget):
     """
     Option boxes 2(NxN) or 1(N) dimensions
     """
-    # TODO: Show default selection on init
 
     valueChanged = QtCore.pyqtSignal(list)
     selectionChanged = QtCore.pyqtSignal(dict)
@@ -327,6 +361,8 @@ class OptionMultiCheckBox(QtWidgets.QWidget):
         # Store some values
         self.name = name
         self.selection = None
+        self.default_value = default_value
+        self.update_tooltip(default_value)
 
         # Different color palettes to visualize disabled widgets
         self.palette_dis = QtGui.QPalette()  # Disabled
@@ -340,9 +376,18 @@ class OptionMultiCheckBox(QtWidgets.QWidget):
         nx = len(labels_x)
         ny = len(labels_y) if labels_y else 1
 
-        # Check default value
+        # Check default value and create pre-selection
         if default_value is None:  # None is only supported for all values
-            default_value = [[None] * ny] * nx
+            if all('Fit' in label for label in labels_x):
+                default_value = [[i if i != j else None for i in range(nx)] for j in range(ny)]
+                for col in default_value:
+                    col.remove(None)
+            elif all('Align' in label for label in labels_x):
+                default_value = [range(nx)]
+            elif ny == 1:
+                default_value = range(nx)
+            else:
+                default_value = [[None] * ny] * nx
 
         # Option name name with boxes below
         layout = QtWidgets.QVBoxLayout(self)
@@ -368,11 +413,23 @@ class OptionMultiCheckBox(QtWidgets.QWidget):
 
         for i, label in enumerate(labels_x):
             layout_iter.addWidget(QtWidgets.QLabel(label), 0, i + offset, alignment=QtCore.Qt.AlignCenter)
-            tmp = []
+            tmp = []  # Store check boxes for matrix
+            k = 0  # Index to set default values
             for j in range(ny):
                 if labels_y and not i:
                     layout_iter.addWidget(QtWidgets.QLabel('  ' + labels_y[j]), j + 1, 0)
                 check_box = QtWidgets.QCheckBox()
+                # Set default values
+                try:
+                    if default_value[i][k] == j:
+                        check_box.setChecked(True)
+                        k += 1
+                except (TypeError, IndexError):
+                    try:
+                        if default_value[i] == i:
+                            check_box.setChecked(True)
+                    except IndexError:
+                        pass
                 check_box.stateChanged.connect(self._emit_value)
                 if name == 'Align duts':
                     check_box.clicked.connect(lambda: self._evaluate_state())
@@ -385,19 +442,6 @@ class OptionMultiCheckBox(QtWidgets.QWidget):
                 self.check_boxes.append(tmp)
         layout.addLayout(layout_iter)
 
-        # set default values
-        for i in range(len(default_value)):
-            if isinstance(default_value[i], collections.Iterable):
-                for j in range(len(default_value[i])):
-                    if default_value[i][j] is not None:
-                        try:
-                            self.check_boxes[i][default_value[i][j]].setChecked(True)
-                        except TypeError:
-                            self.check_boxes[default_value[i][j]].setChecked(True)
-            else:
-                if default_value[i] is not None:
-                    self.check_boxes[default_value[i]].setChecked(True)
-
         if name == 'Align duts':
             self._evaluate_state(init=True)
 
@@ -406,6 +450,9 @@ class OptionMultiCheckBox(QtWidgets.QWidget):
             if name == 'Align duts':
                 check_box_opt.stateChanged.connect(lambda: self._evaluate_state(init=True))
             self._set_readonly()
+
+    def update_tooltip(self, val):
+        self.setToolTip('Current value: {}, (default value: {})'.format(val, self.default_value))
 
     def _evaluate_state(self, init=False):
 
@@ -521,7 +568,7 @@ class OptionMultiCheckBox(QtWidgets.QWidget):
                 self.duts_vals[i] = tmp
 
         if not values or self._all_disabled():
-            values = [None]
+            values = [None] if self.default_value is None else self.default_value
             self.duts_vals = {}
 
         return values
@@ -542,6 +589,7 @@ class OptionMultiCheckBox(QtWidgets.QWidget):
 
     def _emit_value(self):
         values = self._get_values()
+        self.update_tooltip(values)
         self.valueChanged.emit(values)
         self.selectionChanged.emit(self.duts_vals)
 
@@ -561,6 +609,7 @@ class OptionMultiSpinBox(QtWidgets.QWidget):
         self.name = name
         self.selection = None
         self.default_value = default_value
+        self.update_tooltip(default_value)
 
         # Different color palettes to visualize disabled widgets
         self.palette_dis = QtGui.QPalette()  # Disabled
@@ -624,7 +673,8 @@ class OptionMultiSpinBox(QtWidgets.QWidget):
             check_box_opt.stateChanged.connect(lambda v: self._set_readonly(v == 0))
             self._set_readonly()
 
-        self._emit_value()
+    def update_tooltip(self, val):
+        self.setToolTip('Current value: {}, (default value: {})'.format(val, self.default_value))
 
     def enable_selection(self, selection=None):
 
@@ -713,5 +763,6 @@ class OptionMultiSpinBox(QtWidgets.QWidget):
 
     def _emit_value(self):
         values = self._get_values()
+        self.update_tooltip(values)
         self.valueChanged.emit(values)
         self.selectionChanged.emit(self.duts_vals)

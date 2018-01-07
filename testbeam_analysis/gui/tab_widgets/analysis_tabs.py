@@ -326,17 +326,14 @@ class AlignmentTab(AnalysisWidget):
                         fixed=True)
 
         self.add_option(option='align_duts',
-                        #default_value=[range(setup['n_duts'])],
                         func=alignment,
                         optional=True)
 
         self.add_option(option='selection_hit_duts',
-                        #default_value=[range(setup['n_duts'])],
                         func=alignment,
                         optional=True)
 
         self.add_option(option='selection_fit_duts',
-                        #default_value=[range(setup['n_duts'])],
                         func=alignment,
                         optional=True)
 
@@ -484,16 +481,13 @@ class TrackFittingTab(AnalysisWidget):
 
         self.add_option(option='fit_duts',
                         func=fit_tracks,
-                        #default_value=range(setup['n_duts']),
                         optional=True)
 
         self.add_option(option='selection_hit_duts',
-                        #default_value=def_matrix,
                         func=fit_tracks,
                         optional=True)
 
         self.add_option(option='selection_fit_duts',
-                        #default_value=def_matrix,
                         func=fit_tracks,
                         optional=True)
 
