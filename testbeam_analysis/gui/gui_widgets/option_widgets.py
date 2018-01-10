@@ -536,7 +536,7 @@ class OptionMultiCheckBox(QtWidgets.QWidget):
         if selection:
             self.selection = selection
 
-        if self.selection and None not in self.selection and not self._all_disabled():
+        if self.selection and not self._all_disabled():
 
             # Disable all checkboxes
             for cb in self.check_boxes:
@@ -548,6 +548,9 @@ class OptionMultiCheckBox(QtWidgets.QWidget):
                     cb.setDisabled(True)
                     cb.setPalette(self.palette_dis)
 
+            if selection is None:
+                self.selection = dict(zip(range(len(self.check_boxes)),
+                                          range(len(self.check_boxes)) * len(self.check_boxes)))
             # Enable checkboxes in selection
             for i in self.selection.keys():
                 if isinstance(self.selection[i], collections.Iterable):
@@ -593,12 +596,11 @@ class OptionMultiCheckBox(QtWidgets.QWidget):
         for i in range(len(self.check_boxes)):
             tmp = []
             if isinstance(self.check_boxes[i], collections.Iterable):
-
                 for j in range(len(self.check_boxes[i])):
                     if self.check_boxes[i][j].isChecked() and self.check_boxes[i][j].isEnabled():
                         tmp.append(j)
             else:
-                if self.check_boxes[i].isChecked() and self.check_boxes[i].isChecked():
+                if self.check_boxes[i].isChecked() and self.check_boxes[i].isEnabled():
                     values.append(i)
                     self.duts_vals[i] = i
                     continue
@@ -731,7 +733,7 @@ class OptionMultiSpinBox(QtWidgets.QWidget):
         if selection:
             self.selection = selection
 
-        if self.selection and None not in self.selection and not self._all_disabled():
+        if self.selection and not self._all_disabled():
 
             # Disable all spin boxes
             for sb in self.spin_boxes:
@@ -742,6 +744,10 @@ class OptionMultiSpinBox(QtWidgets.QWidget):
                 else:
                     sb.setDisabled(True)
                     sb.setPalette(self.palette_dis)
+
+            if selection is None:
+                self.selection = dict(zip(range(len(self.spin_boxes)),
+                                          range(len(self.spin_boxes)) * len(self.spin_boxes)))
 
             # Enable spin boxes in selection
             for i in self.selection.keys():
@@ -791,7 +797,6 @@ class OptionMultiSpinBox(QtWidgets.QWidget):
                 self.duts_vals[i] = tmp
 
         if not values or self._all_disabled():
-            # FIXME: Default value of selection_track_quality=1 needs to be set instead of None when optional
             values = [None] if self.default_value is None else self.default_value
             self.duts_vals = {}
 

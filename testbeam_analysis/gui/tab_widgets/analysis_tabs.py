@@ -378,7 +378,9 @@ class AlignmentTab(AnalysisWidget):
         # Connect options widgets depending on each other
         self.option_widgets['align_duts'].selectionChanged.connect(lambda sel:
                                                                    self.option_widgets[
-                                                                       'selection_hit_duts'].enable_selection(sel))
+                                                                       'selection_hit_duts'].enable_selection(
+                                                                       dict(zip(sel.keys(),
+                                                                                range(setup['n_duts']) * len(sel)))))
         self.option_widgets['selection_hit_duts'].selectionChanged.connect(lambda sel:
                                                                            self.option_widgets[
                                                                                'selection_fit_duts'].enable_selection(sel))
@@ -457,12 +459,6 @@ class TrackFittingTab(AnalysisWidget):
             input_tracks = os.path.join(options['output_path'], 'TrackCandidates.h5')
 
         self.add_function(func=fit_tracks)
-
-        # define default matrix for iterable of iterable selection_fit/hit_duts
-        def_matrix = [[i if i != j else None for i in range(setup['n_duts'])] for j in range(setup['n_duts'])]
-
-        for col in def_matrix:
-            col.remove(None)
 
         self.add_option(option='input_track_candidates_file',
                         default_value=input_tracks,

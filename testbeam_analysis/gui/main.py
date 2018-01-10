@@ -637,6 +637,7 @@ class AnalysisWindow(QtWidgets.QMainWindow):
             self.console_dock.setVisible(True)
             return
 
+        # TODO: Replace output files if they are not at their original location but in the same folder as session.yaml
         # Check whether output files of completed tabs exist
         missing_files = []
         for tab in session['output'].keys():
@@ -918,6 +919,14 @@ class AnalysisWindow(QtWidgets.QMainWindow):
                     self.run_menu.actions()[0].setEnabled(False)
                     self.run_menu.actions()[0].setToolTip('Consecutive analysis finished')
 
+                    # Enable settings after/interrupted consecutive analysis
+                    self.settings_menu.actions()[0].setEnabled(True)
+                    self.settings_menu.setToolTipsVisible(False)
+
+                    # Enable saving and loading sessions
+                    self.session_menu.actions()[0].setEnabled(True)
+                    self.session_menu.actions()[1].setEnabled(True)
+
                     self.p_bar_rca.setValue(len(self.tab_order))
                     self.label_rca.setText('Done!')
                     # Remove consecutive analysis progressbar
@@ -1063,7 +1072,16 @@ class AnalysisWindow(QtWidgets.QMainWindow):
             except (AttributeError, RuntimeError):
                 pass
 
-        # Enable saving and loading sessions; if exception occurred during consecutive analysis, this is necessary
+        # If an exception occurred during consecutive analysis, this is necessary
+        # Enable consecutive analysis again
+        self.run_menu.actions()[0].setEnabled(True)
+        self.run_menu.actions()[0].setToolTip('Run consecutive analysis with default options without user interaction')
+
+        # Enable settings after/interrupted consecutive analysis
+        self.settings_menu.actions()[0].setEnabled(True)
+        self.settings_menu.setToolTipsVisible(False)
+
+        # Enable saving and loading sessions
         self.session_menu.actions()[0].setEnabled(True)
         self.session_menu.actions()[1].setEnabled(True)
 
