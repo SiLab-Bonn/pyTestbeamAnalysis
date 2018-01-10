@@ -57,8 +57,9 @@ class OptionSlider(QtWidgets.QWidget):
 
         slider.valueChanged.connect(lambda v: self.edit.setText(str(v)))
         slider.valueChanged.connect(lambda _: self._emit_value())
-        self.edit.returnPressed.connect(lambda: slider.setMaximum(max((2 * float(self.edit.text())), 1)))
-        self.edit.returnPressed.connect(lambda: slider.setValue(float(self.edit.text())))
+        # Signal editingFinished respects validator; emitted when return/enter pressed or edit out of focus
+        self.edit.editingFinished.connect(lambda: slider.setMaximum(max((2 * float(self.edit.text())), 1)))
+        self.edit.editingFinished.connect(lambda: slider.setValue(float(self.edit.text())))
 
         if default_value is not None:
             slider.setMaximum(max((2 * default_value), 1))
@@ -67,6 +68,12 @@ class OptionSlider(QtWidgets.QWidget):
 
     def update_tooltip(self, val):
         self.setToolTip('Current value: {}, (default value: {})'.format(val, self.default_value))
+
+    def load_value(self, value):
+
+        if value is not None:  # value can be None
+            self.edit.setText(str(value))
+            self.update_tooltip(value)
 
     def _set_readonly(self, value=True):
 
@@ -139,6 +146,12 @@ class OptionText(QtWidgets.QWidget):
 
     def update_tooltip(self, val):
         self.setToolTip('Current value: {}, (default value: {})'.format(val, self.default_value))
+
+    def load_value(self, value):
+
+        if value is not None:  # value can be None
+            self.edit.setText(str(value))
+            self.update_tooltip(value)
 
     def _set_readonly(self, value=True):
 
@@ -214,6 +227,13 @@ class OptionBool(QtWidgets.QWidget):
 
     def update_tooltip(self, val):
         self.setToolTip('Current value: {}, (default value: {})'.format(val, self.default_value))
+
+    def load_value(self, value):
+
+        if value is not None and isinstance(value, bool):  # value can be None
+            self.rb_t.setChecked(value is True)
+            self.rb_f.setChecked(value is False)
+            self.update_tooltip(value)
 
     def _set_readonly(self, value=True):
 
@@ -304,8 +324,9 @@ class OptionMultiSlider(QtWidgets.QWidget):
             # http://docs.python-guide.org/en/latest/writing/gotchas/
             slider.valueChanged.connect(lambda v, e=edit: e.setText(str(v)))
             slider.valueChanged.connect(lambda _: self._emit_value())
-            edit.returnPressed.connect(lambda s=slider, e=edit: s.setMaximum(max(float(e.text()) * 2, 1)))
-            edit.returnPressed.connect(lambda s=slider, e=edit: s.setValue(float(e.text())))
+            # Signal editingFinished respects validator; emitted when return/enter pressed or edit out of focus
+            edit.editingFinished.connect(lambda s=slider, e=edit: s.setMaximum(max(float(e.text()) * 2, 1)))
+            edit.editingFinished.connect(lambda s=slider, e=edit: s.setValue(float(e.text())))
 
             slider.setMaximum(max_val)
             slider.setValue(default_value[i])
@@ -323,6 +344,13 @@ class OptionMultiSlider(QtWidgets.QWidget):
 
     def update_tooltip(self, val):
         self.setToolTip('Current value: {}, (default value: {})'.format(val, self.default_value))
+
+    def load_value(self, value):
+
+        if value is not None and isinstance(value, collections.Iterable):
+            for i, edit in enumerate(self.edits):
+                edit.setText(str(int(value[i])) if 'int' in self._dtype else str(float(value[i])))
+            self.update_tooltip(value)
 
     def _set_readonly(self, value=True):
 
@@ -453,6 +481,17 @@ class OptionMultiCheckBox(QtWidgets.QWidget):
 
     def update_tooltip(self, val):
         self.setToolTip('Current value: {}, (default value: {})'.format(val, self.default_value))
+
+    def load_value(self, value):
+
+        if value is not None and isinstance(value, collections.Iterable):
+            for i, v in enumerate(value):
+                if isinstance(v, collections.Iterable):
+                    for j in v:
+                        self.check_boxes[i][j].setChecked(True)
+                else:
+                    self.check_boxes[v].setChecked(True)
+            self.update_tooltip(value)
 
     def _evaluate_state(self, init=False):
 
@@ -675,6 +714,17 @@ class OptionMultiSpinBox(QtWidgets.QWidget):
 
     def update_tooltip(self, val):
         self.setToolTip('Current value: {}, (default value: {})'.format(val, self.default_value))
+
+    def load_value(self, value):
+
+        if value is not None and isinstance(value, collections.Iterable):
+            for i in range(len(value)):
+                if isinstance(value[i], collections.Iterable):
+                    for j in range(len(value[i])):
+                        self.spin_boxes[i][j].setValue(value[i][j])
+                else:
+                    self.spin_boxes[i].setValue(value[i])
+            self.update_tooltip(value)
 
     def enable_selection(self, selection=None):
 

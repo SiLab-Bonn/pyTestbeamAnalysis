@@ -587,6 +587,14 @@ class AnalysisWindow(QtWidgets.QMainWindow):
         """
         Opens dialog to select previously saved session. Does several checks on session files content
         """
+        try:
+            if self.tw[self.current_analysis_tab()].analysis_thread.isRunning():
+                msg = 'Can not load while %s analysis is running.' % self.current_analysis_tab()
+                logging.warning(msg=msg)
+                return
+        except AttributeError:
+            pass
+
         caption = 'Load session'
         session_path = QtWidgets.QFileDialog.getOpenFileName(parent=self,
                                                              caption=caption,
@@ -668,6 +676,28 @@ class AnalysisWindow(QtWidgets.QMainWindow):
             # Ubdate tabs
             self.update_tabs(tabs=tab, force=True, enable=session['enabled'][tab])
             self.tw[tab].isFinished = session['status'][tab]
+
+            # Restore states of Parallel/AnalysisWidget
+            if tab not in self.tab_order[:2]:
+                if tab in self.tab_order[2:4]:  # ParallelAnalysisWidget
+                    for dut in session['calls'][tab].keys():
+                        for func in session['calls'][tab][dut].keys():
+                            for opt in session['calls'][tab][dut][func].keys():
+                                try:
+                                    self.tw[tab].tw[dut].option_widgets[opt].load_value(session['calls'][tab][dut][func][opt])
+                                    # Set argument to be able to load, continue and safe a session without losing info
+                                    self.tw[tab].tw[dut]._set_argument(func, opt, session['calls'][tab][dut][func][opt])
+                                except KeyError:  # Fixed option has no option widget; KeyError
+                                    pass
+                else:  # AnalysisWidget
+                    for func in session['calls'][tab].keys():
+                        for opt in session['calls'][tab][func].keys():
+                            try:
+                                self.tw[tab].option_widgets[opt].load_value(session['calls'][tab][func][opt])
+                                # Set argument to be able to load, continue and safe a session without losing info
+                                self.tw[tab]._set_argument(func, opt, session['calls'][tab][func][opt])
+                            except KeyError:  # Fixed option has no option widget; KeyError
+                                pass
 
             # If tab is finished, disable and show buttons, connect and plot if possible
             # TODO: make this less messy
