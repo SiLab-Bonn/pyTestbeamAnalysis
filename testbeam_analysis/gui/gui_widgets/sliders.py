@@ -28,7 +28,7 @@ class IntSlider(QtWidgets.QSlider):
         """ De/increase slider range when set to min/max """
         if self.value() == self.maximum():
             self.setMaximum(2 * self.maximum())
-            self.setValue(2 * self.maximum())
+            self.setValue(int(0.5 * self.maximum()))
         elif self.value() == self.minimum():
             if self.maximum() % 2 == 0 and self.maximum() > 0:
                 self.setMaximum(int(0.5 * self.maximum()))

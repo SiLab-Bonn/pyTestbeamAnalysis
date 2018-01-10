@@ -3,6 +3,7 @@ import logging
 import platform
 import yaml
 import os
+from collections import OrderedDict
 
 from email import message_from_string
 from pkg_resources import get_distribution, DistributionNotFound
@@ -29,6 +30,9 @@ try:
 except (DistributionNotFound, KeyError):
     AUTHORS = 'Not defined'
 
+# needed to dump OrderedDict into file, representer for ordereddict (https://stackoverflow.com/a/8661021)
+represent_dict_order = lambda self, data: self.represent_mapping('tag:yaml.org,2002:map', data.items())
+yaml.add_representer(OrderedDict, represent_dict_order)
 
 class AnalysisWindow(QtWidgets.QMainWindow):
 
@@ -538,6 +542,7 @@ class AnalysisWindow(QtWidgets.QMainWindow):
             status = {}
             enabled = {}
             output_files = {}
+            calls = {}
 
             # Loop over tabs
             for tab in self.tab_order:
@@ -545,9 +550,16 @@ class AnalysisWindow(QtWidgets.QMainWindow):
                 enabled[tab] = self.tabs.isTabEnabled(self.tab_order.index(tab))
                 status[tab] = self.tw[tab].isFinished
 
-                # Get output files
+                # Get output files and call options
                 try:
                     output_files[tab] = self.tw[tab].output_file
+                    if tab in ['Noisy Pixel', 'Clustering']:
+                        sub_calls = {}
+                        for dut in self.tw[tab].tw.keys():
+                            sub_calls[dut] = self.tw[tab].tw[dut].calls
+                        calls[tab] = sub_calls
+                    else:
+                        calls[tab] = self.tw[tab].calls
                 # Files and setup tab have no output files
                 except AttributeError:
                     pass
@@ -555,10 +567,12 @@ class AnalysisWindow(QtWidgets.QMainWindow):
             # Only safe a few things in order to rather restore state than really load files etc
             session = {'status': status, 'enabled': enabled, 'output': output_files,
                        'setup': self.setup, 'options': self.options}
+            session_calls = {'calls': calls}
 
             # Safe session in yaml-file
             with open(session_path, 'w') as f_write:
                 yaml.safe_dump(session, f_write, default_flow_style=False)
+                yaml.dump(session_calls, f_write, default_flow_style=False)
 
             d, f = os.path.split(session_path)
             msg = 'Successfully saved current session to %s in %s' % (f, d)
@@ -588,6 +602,13 @@ class AnalysisWindow(QtWidgets.QMainWindow):
         except IOError:
             d, f = os.path.split(session_path)
             msg = 'Error while loading %s from %s. Aborted.' % (f, d)
+            logging.error(msg=msg)
+            self.console_dock.setVisible(True)
+            return
+
+        if not session:
+            d, f = os.path.split(session_path)
+            msg = 'Loaded session %s from %s is empty. Aborted.' % (f, d)
             logging.error(msg=msg)
             self.console_dock.setVisible(True)
             return
@@ -1011,6 +1032,10 @@ class AnalysisWindow(QtWidgets.QMainWindow):
             # RuntimeError if progressbar has been removed previously
             except (AttributeError, RuntimeError):
                 pass
+
+        # Enable saving and loading sessions; if exception occurred during consecutive analysis, this is necessary
+        self.session_menu.actions()[0].setEnabled(True)
+        self.session_menu.actions()[1].setEnabled(True)
 
     def check_resolution(self):
         """
