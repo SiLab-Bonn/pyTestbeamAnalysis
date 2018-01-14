@@ -3,7 +3,7 @@ import logging
 import platform
 import yaml
 import os
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
 from email import message_from_string
 from pkg_resources import get_distribution, DistributionNotFound
@@ -33,6 +33,7 @@ except (DistributionNotFound, KeyError):
 # needed to dump OrderedDict into file, representer for ordereddict (https://stackoverflow.com/a/8661021)
 represent_dict_order = lambda self, data: self.represent_mapping('tag:yaml.org,2002:map', data.items())
 yaml.add_representer(OrderedDict, represent_dict_order)
+
 
 class AnalysisWindow(QtWidgets.QMainWindow):
 
@@ -602,6 +603,8 @@ class AnalysisWindow(QtWidgets.QMainWindow):
                                                              filter='*.yaml')[0]
         if not session_path:
             return
+        else:
+            session_folder = os.path.split(session_path)[0]
 
         # Load session from file
         try:
@@ -637,9 +640,29 @@ class AnalysisWindow(QtWidgets.QMainWindow):
             self.console_dock.setVisible(True)
             return
 
-        # TODO: Replace output files if they are not at their original location but in the same folder as session.yaml
-        # Check whether output files of completed tabs exist
-        missing_files = []
+        # Check if all necessary files exist
+        missing_input = []
+        # Check whether input files exist; can be in different folders
+        # Look at same folder as session.yaml is in as default, otherwise check original path
+        for in_file in session['options']['input_files']:
+            in_new = os.path.join(session_folder, os.path.split(in_file)[1])
+            if not os.path.isfile(in_new) and not os.path.isfile(in_file):
+                missing_input.append(in_file)
+            else:
+                if os.path.isfile(in_new) and not os.path.isfile(in_file):
+                    session['options']['input_files'][session['options']['input_files'].index(in_file)] = in_new
+
+        # If files are missing, abort
+        if missing_input:
+            msg = 'Could not find input files %s. Aborted.' % ', '.join(missing_input)
+            logging.error(msg=msg)
+            self.console_dock.setVisible(True)
+            return
+
+        missing_output = []
+        locations = defaultdict(list)
+        # Check whether output files of completed tabs exist; must be all in same folder in order to set output path
+        # Look at same folder as session.yaml is in as default, otherwise check original path
         for tab in session['output'].keys():
             # Analysis is finished and output files should exist
             if session['status'][tab]:
@@ -647,31 +670,67 @@ class AnalysisWindow(QtWidgets.QMainWindow):
 
                 if isinstance(out, list):
                     for f in out:
-                        if not os.path.isfile(f):
-                            missing_files.append(tab)
+                        out_new = os.path.join(session_folder, os.path.split(f)[1])
+                        if not os.path.isfile(out_new) and not os.path.isfile(f):
+                            missing_output.append(tab)
                             break
+                        else:
+                            if os.path.isfile(out_new) and not os.path.isfile(f):
+                                session['output'][tab][out.index(f)] = out_new
+                                locations[tab].append(session_folder)
+                            else:
+                                locations[tab].append(os.path.split(f)[0])
                 elif isinstance(out, dict):
                     for k in out:
-                        if not os.path.isfile(out[k]):
-                            missing_files.append(tab)
+                        out_new = os.path.join(session_folder, os.path.split(out[k])[1])
+                        if not os.path.isfile(out_new) and not os.path.isfile(out[k]):
+                            missing_output.append(tab)
                             break
+                        else:
+                            if os.path.isfile(out_new) and not os.path.isfile(out[k]):
+                                session['output'][tab][k] = out_new
+                                locations[tab].append(session_folder)
+                            else:
+                                locations[tab].append(os.path.split(out[k])[0])
                 else:
-                    if not os.path.isfile(out):
-                        missing_files.append(tab)
+                    out_new = os.path.join(session_folder, os.path.split(out)[1])
+                    if not os.path.isfile(out_new) and not os.path.isfile(out):
+                        missing_output.append(tab)
+                    else:
+                        if os.path.isfile(out_new) and not os.path.isfile(out):
+                            session['output'][tab] = out_new
+                            locations[tab].append(session_folder)
+                        else:
+                            locations[tab].append(os.path.split(out)[0])
 
         # If files are missing, abort
-        if missing_files:
-            msg = 'Session missing output files of %s. Aborted.' % ', '.join(missing_files)
+        if missing_output:
+            msg = 'Could not find output files of %s. Aborted.' % ', '.join(missing_output)
             logging.error(msg=msg)
             self.console_dock.setVisible(True)
             return
+
+        # Check if all output files are in same location in order to set this location as output for analysis
+        if not all(all(loc == locations[locations.keys()[0]][0] for loc in locations[t]) for t in locations):
+            dif_loc = []
+            for t in locations:
+                tmp = [loc for loc in locations[t] if loc != locations[locations.keys()[0]][0]]
+                if tmp:
+                    for loc in tmp:
+                        dif_loc.append(loc)
+            msg = 'Output files are located in different folders (%s). Cannot set output folder. Aborted.' % ', '.join(dif_loc)
+            logging.error(msg=msg)
+            self.console_dock.setVisible(True)
+            return
+        else:
+            session['options']['output_path'] = locations.values()[0][0]
 
         # Start loading tabs
         # Reset analysis window and set the options and setup from sessions file
         self.new_analysis()
         self.setup = session['setup']
         self.options = session['options']
-        self.handle_messages(message='Loading', ms=0)
+        self.handle_messages(message='Loading from %s' % session['options']['output_path'], ms=0)
         # Loop over tabs and restore state
         for tab in self.tab_order:
             # Ubdate tabs
