@@ -5,10 +5,12 @@
 """
 
 import os
+import queue
 
 from collections import OrderedDict
 from PyQt5 import QtCore, QtWidgets
 from testbeam_analysis.gui.gui_widgets.analysis_widgets import AnalysisWidget, ParallelAnalysisWidget
+from testbeam_analysis.gui.gui_widgets.sub_windows import IPrealignmentWindow
 from testbeam_analysis.hit_analysis import generate_pixel_mask, cluster_hits
 from testbeam_analysis.dut_alignment import correlate_cluster, prealignment, merge_cluster_data, apply_alignment, alignment
 from testbeam_analysis.track_analysis import find_tracks, fit_tracks
@@ -236,7 +238,8 @@ class PrealignmentTab(AnalysisWidget):
         self.add_option(option='gui',
                         default_value=True,
                         func=prealignment,
-                        fixed=True)
+                        fixed=True,
+                        hidden=True)
 
         # Fix options that should not be changed
         self.add_option(option='inverse', func=apply_alignment, fixed=True)
@@ -248,6 +251,57 @@ class PrealignmentTab(AnalysisWidget):
                   lambda: self._make_plots()]:  # kwargs for correlation
             self.analysisFinished.connect(x)
 
+        # Disconect and reconnect to check for interactive prealignment
+        self.btn_ok.disconnect()
+        self.btn_ok.clicked.connect(self.proceed)
+
+        # Variable for interactive prealignment window
+        self.ip_win = None
+
+    def proceed(self):
+
+        if not self.calls[prealignment]['non_interactive']:
+
+            class Listener(QtCore.QObject):
+
+                dataReceived = QtCore.pyqtSignal(list)
+                closeSignal = QtCore.pyqtSignal()
+
+                def __init__(self, q):
+                    super(Listener, self).__init__()
+
+                    self.queue = q
+
+                def listen(self):
+                    while True:
+                        try:
+                            a, b, c, d, e, f, g = self.queue.get()
+                            self.dataReceived.emit([a, b, c, d, e, f, g])
+                        except ValueError:
+                            self.closeSignal.emit()
+                            break
+
+            io = {'in': queue.Queue(), 'out': queue.Queue()}
+            self.ip_win = IPrealignmentWindow(io['out'], parent=self)
+            listener = Listener(io['in'])
+            self.thread = QtCore.QThread()  # Make class variable to avoid getting garbage collected when out of scope
+            listener.moveToThread(self.thread)
+            self.thread.started.connect(listener.listen)
+            listener.dataReceived.connect(lambda data: self.iprealignment(data))
+            listener.closeSignal.connect(self.ip_win.close)
+            listener.closeSignal.connect(self.thread.quit)
+            self.thread.finished.connect(listener.deleteLater)
+            self.thread.finished.connect(self.thread.deleteLater)
+
+            self.add_option(option='queue',
+                            default_value=io,
+                            func=prealignment,
+                            fixed=True,
+                            hidden=True)
+            self.thread.start()
+
+        self._call_funcs()
+
     def _make_plots(self):
 
         # Determine the order of plotting tabs with OrderedDict
@@ -258,6 +312,11 @@ class PrealignmentTab(AnalysisWidget):
 
         self.plot(input_file=multiple_plotting_data, plot_func=multiple_plotting_func,
                   figures=multiple_plotting_figs, correlation={'dut_names': self.setup['dut_names'], 'gui': True})
+
+    def iprealignment(self, data):
+        self.ip_win.update_plots(*data)
+        if not self.ip_win.isActiveWindow():
+            self.ip_win.showMaximized()
 
 
 class TrackFindingTab(AnalysisWidget):
@@ -591,7 +650,8 @@ class ResidualTab(AnalysisWidget):
         self.add_option(option='gui',
                         default_value=True,
                         func=calculate_residuals,
-                        fixed=True)
+                        fixed=True,
+                        hidden=True)
 
         for x in [lambda: self._connect_vitables(files=self.output_file),
                   lambda: self._make_plots()]:
@@ -670,7 +730,8 @@ class EfficiencyTab(AnalysisWidget):
         self.add_option(option='gui',
                         default_value=True,
                         func=calculate_efficiency,
-                        fixed=True)
+                        fixed=True,
+                        hidden=True)
 
         for x in [lambda: self._connect_vitables(files=self.output_file),
                   lambda: self._make_plots()]:

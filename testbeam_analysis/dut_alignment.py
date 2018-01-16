@@ -239,7 +239,7 @@ def merge_cluster_data(input_cluster_files, output_merged_file, n_pixels, pixel_
             progress_bar.finish()
 
 
-def prealignment(input_correlation_file, output_alignment_file, z_positions, pixel_size, s_n=0.1, fit_background=False, reduce_background=False, dut_names=None, no_fit=False, non_interactive=True, iterations=3, plot=True, gui=False):
+def prealignment(input_correlation_file, output_alignment_file, z_positions, pixel_size, s_n=0.1, fit_background=False, reduce_background=False, dut_names=None, no_fit=False, non_interactive=True, iterations=3, plot=True, gui=False, queue=False):
     '''Deduce a pre-alignment from the correlations, by fitting the correlations with a straight line (gives offset, slope, but no tild angles).
        The user can define cuts on the fit error and straight line offset in an interactive way.
 
@@ -276,6 +276,8 @@ def prealignment(input_correlation_file, output_alignment_file, z_positions, pix
         If True, create additional output plots.
     gui : bool
         If True, this function is excecuted from GUI and returns figures
+    queue : bool, dict
+        If gui is True and non_interactive is False, queue is a dict with a in and output queue to communicate with GUI thread
     '''
     logging.info('=== Pre-alignment ===')
 
@@ -416,15 +418,24 @@ def prealignment(input_correlation_file, output_alignment_file, z_positions, pix
                 refit = True
                 selected_data = np.ones_like(x_dut, dtype=np.bool)
                 actual_iteration = 0  # Refit counter for non interactive mode
-                while(refit):
-                    selected_data, fit, refit = plot_utils.plot_prealignments(x=x_dut_scaled_selected,
-                                                                              mean_fitted=mean_fitted_scaled_selected,
-                                                                              mean_error_fitted=mean_error_fitted_scaled_selected,
-                                                                              n_cluster=n_cluster_selected,
-                                                                              ref_name=ref_name,
-                                                                              dut_name=dut_name,
-                                                                              prefix=table_prefix,
-                                                                              non_interactive=non_interactive)
+                while refit:
+                    if gui and not non_interactive:
+                        # Put data in queue to be processed interactively on GUI thread
+                        queue['in'].put([x_dut_scaled_selected, mean_fitted_scaled_selected,
+                                         mean_error_fitted_scaled_selected, n_cluster_selected,
+                                         ref_name, dut_name, table_prefix])
+                        # Blocking statement to wait for processed data from GUI thread
+                        selected_data, fit, refit = queue['out'].get()
+                    else:
+                        selected_data, fit, refit = plot_utils.plot_prealignments(x=x_dut_scaled_selected,
+                                                                                  mean_fitted=mean_fitted_scaled_selected,
+                                                                                  mean_error_fitted=mean_error_fitted_scaled_selected,
+                                                                                  n_cluster=n_cluster_selected,
+                                                                                  ref_name=ref_name,
+                                                                                  dut_name=dut_name,
+                                                                                  prefix=table_prefix,
+                                                                                  non_interactive=non_interactive)
+
                     x_selected = x_selected[selected_data]
                     x_dut_scaled_selected = x_dut_scaled_selected[selected_data]
                     mean_fitted_scaled_selected = mean_fitted_scaled_selected[selected_data]
@@ -518,6 +529,9 @@ def prealignment(input_correlation_file, output_alignment_file, z_positions, pix
                                                  output_pdf=output_pdf,
                                                  gui=gui,
                                                  figs=figs)
+
+        if gui and not non_interactive:
+            queue['in'].put([None])  # Put random element in queue to signal GUI thread end of interactive prealignment
 
         logging.info('Store pre-alignment data in %s', output_alignment_file)
         with tb.open_file(output_alignment_file, mode="w") as out_file_h5:
