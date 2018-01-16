@@ -9,6 +9,9 @@ class IntSlider(QtWidgets.QSlider):
     def __init__(self, *args, **kwargs):
         super(IntSlider, self).__init__(*args, **kwargs)
 
+        # Whether or not to de/increase slider range automatically on MouseReleaseEvent on max or min value of slider
+        self.auto_scale_flag = True
+
     def setMaximum(self, p_int):
         super(IntSlider, self).setMaximum(p_int)
         # Scale step size
@@ -26,15 +29,19 @@ class IntSlider(QtWidgets.QSlider):
 
     def mouseReleaseEvent(self, e):
         """ De/increase slider range when set to min/max """
-        if self.value() == self.maximum():
-            self.setMaximum(2 * self.maximum())
-            self.setValue(int(0.5 * self.maximum()))
-        elif self.value() == self.minimum():
-            if self.maximum() % 2 == 0 and self.maximum() > 0:
-                self.setMaximum(int(0.5 * self.maximum()))
-            else:
-                self.setMaximum(int(0.5 * (self.maximum() + 1)))
-            self.setValue(int(0.5 * self.maximum()))
+        if self.auto_scale_flag:
+            if self.value() == self.maximum():
+                self.setMaximum(2 * self.maximum())
+                self.setValue(int(0.5 * self.maximum()))
+            elif self.value() == self.minimum():
+                if self.maximum() % 2 == 0 and self.maximum() > 0:
+                    self.setMaximum(int(0.5 * self.maximum()))
+                else:
+                    self.setMaximum(int(0.5 * (self.maximum() + 1)))
+                self.setValue(int(0.5 * self.maximum()))
+
+    def setAutoScale(self, v=True):
+        self.auto_scale_flag = v
 
 
 class FloatSlider(QtWidgets.QSlider):
@@ -49,6 +56,9 @@ class FloatSlider(QtWidgets.QSlider):
         super(FloatSlider, self).setMinimum(0)
         super(FloatSlider, self).setMaximum(self._max_int)
         super(FloatSlider, self).valueChanged.connect(lambda _: self.valueChanged.emit(self.value()))
+
+        # Whether or not to de/increase slider range automatically on MouseReleaseEvent on max or min value of slider
+        self.auto_scale_flag = True
 
         self._min_value = 0.0
         self._max_value = 1.0
@@ -98,9 +108,13 @@ class FloatSlider(QtWidgets.QSlider):
 
     def mouseReleaseEvent(self, e):
         """ De/increase slider range when set to min/max """
-        if self.value() == self.maximum():
-            self.setMaximum(2.0 * self.maximum())
-            self.setValue(0.5 * self.maximum())
-        elif self.value() == self.minimum():
-            self.setMaximum(0.5 * self.maximum())
-            self.setValue(0.5 * self.maximum())
+        if self.auto_scale_flag:
+            if self.value() == self.maximum():
+                self.setMaximum(2.0 * self.maximum())
+                self.setValue(0.5 * self.maximum())
+            elif self.value() == self.minimum():
+                self.setMaximum(0.5 * self.maximum())
+                self.setValue(0.5 * self.maximum())
+
+    def setAutoScale(self, v=True):
+        self.auto_scale_flag = v
