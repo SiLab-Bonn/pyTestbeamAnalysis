@@ -208,7 +208,7 @@ class AnalysisWidget(QtWidgets.QWidget):
                 self.add_option(func=func, option=name)
 
     def add_option(self, option, func, dtype=None, name=None, optional=None, default_value=None, fixed=False,
-                   tooltip=None):
+                   tooltip=None, hidden=False):
         """
         Add an option to the gui to set function arguments
 
@@ -227,6 +227,8 @@ class AnalysisWidget(QtWidgets.QWidget):
             Default value for option
         fixed : bool
             Fix option value  default value
+        hidden : bool
+            Whether or not to hide the option on GUI. Only available for fixed options
         """
 
         # Check if option exists already
@@ -277,9 +279,7 @@ class AnalysisWidget(QtWidgets.QWidget):
                 logging.warning('Cannot create option %s for dtype "%s" for function %s', option, dtype, func.__name__)
                 return
 
-            # TODO: Why not allow default value other than None for optional? This implies all optinals default value is None
-            # self._set_argument(func, option, default_value if not optional else None)
-            self._set_argument(func, option, default_value)  # Allow to set optional for default values other than None
+            self._set_argument(func, option, default_value)
             self.option_widgets[option] = widget
             self.option_widgets[option].valueChanged.connect(lambda value: self._set_argument(func, option, value))
 
@@ -312,7 +312,8 @@ class AnalysisWidget(QtWidgets.QWidget):
                 text.setText(t)
             else:
                 text.setText(name + ':\n' + str(default_value) + '\n')
-            self.opt_fixed.addWidget(text)
+            if not hidden:
+                self.opt_fixed.addWidget(text)
             self.calls[func][option] = default_value
 
     def _select_widget(self, dtype, name, default_value, optional, tooltip, func):
