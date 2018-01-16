@@ -100,11 +100,11 @@ class FloatSlider(QtWidgets.QSlider):
 
     def mousePressEvent(self, e):
         """ Jump to click position """
-        self.setValue(QtWidgets.QStyle.sliderValueFromPosition(self.minimum(), self.maximum(), e.x(), self.width()))
+        self.setValue(float(e.x())/self.width() * self._value_range + self.minimum())
 
     def mouseMoveEvent(self, e):
         """ Jump to pointer position while moving """
-        self.setValue(QtWidgets.QStyle.sliderValueFromPosition(self.minimum(), self.maximum(), e.x(), self.width()))
+        self.setValue(float(e.x()) / self.width() * self._value_range + self.minimum())
 
     def mouseReleaseEvent(self, e):
         """ De/increase slider range when set to min/max """
