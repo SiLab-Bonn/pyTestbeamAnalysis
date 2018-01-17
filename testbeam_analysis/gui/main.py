@@ -516,6 +516,15 @@ class AnalysisWindow(QtWidgets.QMainWindow):
         Opens a dialog and safes current session
         """
 
+        try:
+            if self.tw[self.current_analysis_tab()].analysis_thread.isRunning():
+                msg = 'Can not safe while %s analysis is running.' % self.current_analysis_tab()
+                logging.error(msg=msg)
+                self.console_dock.setVisible(True)
+                return
+        except AttributeError:
+            pass
+
         # Path to sessions directory in output_path
         sessions_dir = os.path.join(self.options['output_path'], 'sessions')
 
@@ -591,7 +600,8 @@ class AnalysisWindow(QtWidgets.QMainWindow):
         try:
             if self.tw[self.current_analysis_tab()].analysis_thread.isRunning():
                 msg = 'Can not load while %s analysis is running.' % self.current_analysis_tab()
-                logging.warning(msg=msg)
+                logging.error(msg=msg)
+                self.console_dock.setVisible(True)
                 return
         except AttributeError:
             pass

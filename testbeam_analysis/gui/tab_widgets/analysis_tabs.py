@@ -292,12 +292,15 @@ class PrealignmentTab(AnalysisWidget):
             listener.closeSignal.connect(self.thread.quit)
             self.thread.finished.connect(listener.deleteLater)
             self.thread.finished.connect(self.thread.deleteLater)
+            # Important to delete to not safe in calls because queue has thread lock
+            self.thread.finished.connect(lambda: self._delete_option(option='queue', func=prealignment))
 
             self.add_option(option='queue',
                             default_value=io,
                             func=prealignment,
                             fixed=True,
                             hidden=True)
+
             self.thread.start()
 
         self._call_funcs()

@@ -367,9 +367,11 @@ class AnalysisWidget(QtWidgets.QWidget):
         Delete existing option. Needed if option is set manually.
         """
 
-        # Delete option widget
-        self.option_widgets[option].close()
-        del self.option_widgets[option]
+        # If option is not fixed, delete corresponding widget
+        if option in self.option_widgets:
+            # Delete option widget
+            self.option_widgets[option].close()
+            del self.option_widgets[option]
         # Update widgets
         self.opt_optional.update()
         self.opt_needed.update()
