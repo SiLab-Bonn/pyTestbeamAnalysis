@@ -6,7 +6,8 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 
 from testbeam_analysis.gui.tab_widgets.files_tab import FilesTab
 from testbeam_analysis.gui.tab_widgets.setup_tab import SetupTab
-from testbeam_analysis.gui.gui_widgets.analysis_widgets import AnalysisWidget
+from testbeam_analysis.gui.tab_widgets import analysis_tabs
+from testbeam_analysis.gui.gui_widgets.analysis_widgets import AnalysisWidget, ParallelAnalysisWidget
 from testbeam_analysis.gui.gui_widgets.option_widgets import OptionSlider, OptionText, OptionBool
 
 
@@ -24,14 +25,14 @@ class TestGui(unittest.TestCase):
         # Make test setup and options
         cls.test_setup = {'dut_names': ['Tel_%i' % i for i in range(4)],
                           'n_duts': 4,
-                          'n_pixels': [(80, 336) * 4],
-                          'pixel_size': [(250.0, 50.0) * 4],
+                          'n_pixels': [(80, 336) for _ in range(4)],
+                          'pixel_size': [(250.0, 50.0) for _ in range(4)],
                           'z_positions': [0.0, 19500.0, 108800.0, 126800.0],
-                          'rotations': [(0.0, 0.0, 0.0) * 4],
+                          'rotations': [(0.0, 0.0, 0.0) for _ in range(4)],
                           'scatter_planes': None}
 
-        cls.test_options = {'input_files': None,
-                            'output_path': None,
+        cls.test_options = {'input_files': ['test_input_file_Tel_%i' % i for i in range(4)],
+                            'output_path': 'test_output_path',
                             'chunk_size': 1000000,
                             'plot': False,
                             'noisy_suffix': '_noisy.h5',  # fixed since fixed in function
@@ -45,11 +46,38 @@ class TestGui(unittest.TestCase):
                          'Mimosa26': {'material_budget': 0.000797512, 'n_cols': 1152, 'n_rows': 576, 'pitch_col': 18.4,
                                       'pitch_row': 18.4}}
 
-        # Create widgets
+        # Create tab widgets
         cls.files_tab = FilesTab(parent=cls.main_widget)
         cls.setup_tab = SetupTab(parent=cls.main_widget)
+        cls.noisy_pixel_tab = analysis_tabs.NoisyPixelsTab(parent=cls.main_widget, setup=cls.test_setup,
+                                                           options=cls.test_options, name='Noisy Pixel',
+                                                           tab_list='Clustering')
+        cls.clustering_tab = analysis_tabs.ClusterPixelsTab(parent=cls.main_widget, setup=cls.test_setup,
+                                                            options=cls.test_options, name='Clustering',
+                                                            tab_list='Prealignment')
+        cls.prealignment_tab = analysis_tabs.PrealignmentTab(parent=cls.main_widget, setup=cls.test_setup,
+                                                             options=cls.test_options, name='Prealignment',
+                                                             tab_list='Track Finding')
+        cls.track_finding_tab = analysis_tabs.TrackFindingTab(parent=cls.main_widget, setup=cls.test_setup,
+                                                              options=cls.test_options, name='Track Finding',
+                                                              tab_list='Alignment')
+        cls.alignment_tab = analysis_tabs.AlignmentTab(parent=cls.main_widget, setup=cls.test_setup,
+                                                       options=cls.test_options, name='Alignment',
+                                                       tab_list='Track Fitting')
+        cls.track_fitting_tab = analysis_tabs.TrackFittingTab(parent=cls.main_widget, setup=cls.test_setup,
+                                                              options=cls.test_options, name='Track Fitting',
+                                                              tab_list=['Residuals', 'Efficiency'])
+        cls.residual_tab = analysis_tabs.ResidualTab(parent=cls.main_widget, setup=cls.test_setup,
+                                                     options=cls.test_options, name='Residuals',
+                                                     tab_list='Efficiency')
+        cls.efficiency_tab = analysis_tabs.EfficiencyTab(parent=cls.main_widget, setup=cls.test_setup,
+                                                         options=cls.test_options, name='Efficiency',
+                                                         tab_list='Last')
+        # Creat single analysis and parallel analysis widget
         cls.analysis_widget = AnalysisWidget(parent=cls.main_widget, setup=cls.test_setup, options=cls.test_options,
                                              name='Test')
+        cls.parallel_analysis_widget = ParallelAnalysisWidget(parent=cls.main_widget, setup=cls.test_setup,
+                                                              options=cls.test_options, name='Test')
 
     @classmethod
     def tearDownClass(cls):
