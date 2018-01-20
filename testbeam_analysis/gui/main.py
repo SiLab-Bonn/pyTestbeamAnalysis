@@ -562,7 +562,7 @@ class AnalysisWindow(QtWidgets.QMainWindow):
 
                 # Get output files and call options
                 try:
-                    output_files[tab] = self.tw[tab].output_file
+                    output_files[tab] = self.tw[tab].output_file if not isinstance(self.tw[tab].output_file, dict) else self.tw[tab].output_file.values()
                     if tab in ['Noisy Pixel', 'Clustering']:
                         sub_calls = {}
                         for dut in self.tw[tab].tw.keys():

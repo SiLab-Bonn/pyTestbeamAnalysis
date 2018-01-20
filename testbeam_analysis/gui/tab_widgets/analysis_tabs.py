@@ -232,11 +232,19 @@ class PrealignmentTab(AnalysisWidget):
 
         self.add_option(option='use_duts',
                         func=apply_alignment,
-                        default_value=range(setup['n_duts']),
+                        default_value=list(range(setup['n_duts'])),  # Python3
                         optional=True)
 
         self.add_option(option='gui',
                         default_value=True,
+                        func=prealignment,
+                        fixed=True,
+                        hidden=True)
+
+        # Important in order to keep underlying analysis widget from making an option widget.
+        # This option is changed automatically if interactive prealignment is selected.
+        self.add_option(option='queue',
+                        default_value=False,
                         func=prealignment,
                         fixed=True,
                         hidden=True)
@@ -429,7 +437,7 @@ class AlignmentTab(AnalysisWidget):
                         fixed=True)
 
         self.add_option(option='use_duts',
-                        default_value=range(setup['n_duts']),
+                        default_value=list(range(setup['n_duts'])),  # Python3
                         func=apply_alignment,
                         optional=True)
 
@@ -442,7 +450,8 @@ class AlignmentTab(AnalysisWidget):
                                                                    self.option_widgets[
                                                                        'selection_hit_duts'].enable_selection(
                                                                        dict(zip(sel.keys(),
-                                                                                range(setup['n_duts']) * len(sel)))))
+                                                                                list(range(setup['n_duts']))  # Python3
+                                                                                * len(sel)))))
         self.option_widgets['selection_hit_duts'].selectionChanged.connect(lambda sel:
                                                                            self.option_widgets[
                                                                                'selection_fit_duts'].enable_selection(sel))
@@ -646,7 +655,7 @@ class ResidualTab(AnalysisWidget):
                         fixed=True)
 
         self.add_option(option='use_duts',
-                        default_value=range(setup['n_duts']),
+                        default_value=list(range(setup['n_duts'])),  # Python3
                         func=calculate_residuals,
                         optional=True)
 
@@ -726,7 +735,7 @@ class EfficiencyTab(AnalysisWidget):
                         fixed=True)
 
         self.add_option(option='use_duts',
-                        default_value=range(setup['n_duts']),
+                        default_value=list(range(setup['n_duts'])),  # Python3
                         func=calculate_efficiency,
                         optional=True)
 
