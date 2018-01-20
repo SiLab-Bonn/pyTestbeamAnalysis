@@ -43,6 +43,20 @@ def get_parameter_doc(func, dtype=False):
     return pars
 
 
+def where(name):
+    """
+    Finds and returns a list with system paths to an executable name
+    """
+    result = []
+    paths = os.defpath.split(os.pathsep)
+    for outerpath in paths:
+        for innerpath, _, _ in os.walk(outerpath):
+            path = os.path.join(innerpath, name)
+    if os.path.isfile(path) and os.access(path, os.X_OK):
+        result.append(os.path.normpath(path))
+    return result
+
+
 class AnalysisWidget(QtWidgets.QWidget):
     """
     Implements a generic analysis gui.
@@ -491,15 +505,16 @@ class AnalysisWidget(QtWidgets.QWidget):
         :param files: HDF5-file or list of HDF5-files
         """
 
+        vitables_path = [vitables for vitables in where('vitables') if 'conda' not in vitables]
+
         if isinstance(files, list):
-            vitables_paths = ['vitables']
             for f in files:
-                vitables_paths.append(str(f))
+                vitables_path.append(str(f))
         else:
-            vitables_paths = ['vitables', str(files)]
+            vitables_path.append(str(files))
 
         # Create worker for vitables and move to thread
-        self.vitables_worker = AnalysisWorker(func=call, args=vitables_paths)
+        self.vitables_worker = AnalysisWorker(func=call, args=vitables_path)
         self.vitables_worker.moveToThread(self.vitables_thread)
 
         # Connect exceptions signal from worker on different thread to main thread
@@ -871,15 +886,35 @@ class ParallelAnalysisWidget(QtWidgets.QWidget):
         :param files: HDF5-file or list of HDF5-files
         """
 
+#        def helper(f):
+#            """Find vitables on OS and call"""
+#            if platform.system() in ('Linux', 'Darwin'):  # Darwin == Mac OS
+#                vitables_path = [vitables for vitables in check_output(('whereis', 'vitables')).split(' ')
+#                                  if
+#                                  os.path.isfile(vitables) and os.access(vitables, os.X_OK) and 'conda' not in vitables]
+#            elif platform.system() == 'Windows':
+#                vitables_path = [vitables for vitables in check_output(('where', 'vitables')).split(' ')
+#                                  if
+#                                  os.path.isfile(vitables) and os.access(vitables, os.X_OK) and 'conda' not in vitables]
+#
+#            if isinstance(f, list):
+#                for f_ in f:
+#                    vitables_path.append(str(f_))
+#            else:
+#                vitables_path.append(str(f))
+#
+#            call(vitables_path)
+
+        vitables_path = [vitables for vitables in where('vitables') if 'conda' not in vitables]
+
         if isinstance(files, list):
-            vitables_paths = ['vitables']
             for f in files:
-                vitables_paths.append(str(f))
+                vitables_path.append(str(f))
         else:
-            vitables_paths = ['vitables', str(files)]
+            vitables_path.append(str(files))
 
         # Create worker for vitables and move to thread
-        self.vitables_worker = AnalysisWorker(func=call, args=vitables_paths)
+        self.vitables_worker = AnalysisWorker(func=call, args=vitables_path)
         self.vitables_worker.moveToThread(self.vitables_thread)
 
         # Connect exceptions signal from worker on different thread to main thread
@@ -914,12 +949,19 @@ class ParallelAnalysisWidget(QtWidgets.QWidget):
             names = self.duts
 
         # Counter for plots
+        self._n_plots = 0
         self._n_plots_finished = 0
         self.p_bar.setBusy('Plotting')
 
-        # Make plot widget for each DUT
+        # Make plot widget for each DUT if DUT has exactly one input file
         for dut in names:
-            plot = AnalysisPlotter(input_file=input_file[names.index(dut)], plot_func=plot_func,
+            input_file_tmp = [in_file for in_file in input_file if dut in in_file]
+            if len(input_file_tmp) != 1:
+                continue
+            else:
+                self._n_plots += 1
+                input_file_tmp = input_file_tmp[0]
+            plot = AnalysisPlotter(input_file=input_file_tmp, plot_func=plot_func,
                                    thread=self.plotting_thread, dut_name=dut, **kwargs)
             plot.finishedPlotting.connect(self._plotting_finished)
             plot.exceptionSignal.connect(lambda e, trc_bck: self.emit_exception(exception=e, trace_back=trc_bck,
@@ -939,7 +981,7 @@ class ParallelAnalysisWidget(QtWidgets.QWidget):
         Increments the plot counter and emits plottingFinished signal when counter reaches number of DUTs
         """
         self._n_plots_finished += 1
-        if self._n_plots_finished == len(self.duts):
+        if self._n_plots_finished == self._n_plots:
             self.p_bar.setFinished()
             self.plottingFinished.emit(self.name)
 
