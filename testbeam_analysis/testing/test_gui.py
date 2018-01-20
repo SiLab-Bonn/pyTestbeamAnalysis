@@ -25,10 +25,10 @@ class TestGui(unittest.TestCase):
         # Make test setup and options
         cls.test_setup = {'dut_names': ['Tel_%i' % i for i in range(4)],
                           'n_duts': 4,
-                          'n_pixels': [(80, 336) for _ in range(4)],
-                          'pixel_size': [(250.0, 50.0) for _ in range(4)],
+                          'n_pixels': [(80, 336)] * 4,
+                          'pixel_size': [(250.0, 50.0)] * 4,
                           'z_positions': [0.0, 19500.0, 108800.0, 126800.0],
-                          'rotations': [(0.0, 0.0, 0.0) for _ in range(4)],
+                          'rotations': [(0.0, 0.0, 0.0)] * 4,
                           'scatter_planes': None}
 
         cls.test_options = {'input_files': ['test_input_file_Tel_%i' % i for i in range(4)],
