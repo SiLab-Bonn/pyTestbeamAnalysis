@@ -333,7 +333,6 @@ class IPrealignmentWindow(QtWidgets.QMainWindow):
         self.dut_name = None
         self.prefix = None
 
-
         # Global variables needed to manipulate them within a matplotlib QT slot function
         self.selected_data = None
         self.fit = None

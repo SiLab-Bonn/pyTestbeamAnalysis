@@ -70,19 +70,18 @@ class NoisyPixelsTab(ParallelAnalysisWidget):
         # Add checkbox to each tab to enable skipping noisy pixel removal individually
         self.check_boxes = {}
         for dut in setup['dut_names']:
-            cb = QtWidgets.QCheckBox('Skip noisy pixel removal for %s' % dut)
-            cb.stateChanged.connect(self.check_skip)
-            self.check_boxes[dut] = cb
+            self.check_boxes[dut] = QtWidgets.QCheckBox('Skip noisy pixel removal for %s' % dut)
             self.tw[dut].layout_options.addWidget(self.check_boxes[dut])
 
         self.btn_ok.disconnect()
         self.btn_ok.clicked.connect(self.proceed)
-        self.check_skip()
 
     def proceed(self):
         """
         Called when ok button is clicked. Either does analysis or skips if all noisy pixel cbs are checked 
         """
+        self.check_skip()
+
         for key in self.tw.keys():
             self.tw[key].container.setDisabled(True)
 
@@ -90,8 +89,11 @@ class NoisyPixelsTab(ParallelAnalysisWidget):
             self._call_parallel_funcs()
         else:
             self.btn_ok.setDisabled(True)
+            self.p_bar.setVisible(True)
             self.analysisFinished.emit(self.name, self.tab_list)
             self.plottingFinished.emit(self.name)
+            self.p_bar.setFinished()
+            self.isFinished = True
 
     def check_skip(self):
         """
@@ -99,7 +101,7 @@ class NoisyPixelsTab(ParallelAnalysisWidget):
         """
 
         # Make array with bools whether noisy pixel removal is skipped
-        self.options['skip_noisy_pixel'] = [False]*self.setup['n_duts']
+        self.options['skip_noisy_pixel'] = [False] * self.setup['n_duts']
 
         # Loop over duts
         for dut in self.setup['dut_names']:
