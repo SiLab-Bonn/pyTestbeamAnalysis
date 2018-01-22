@@ -267,16 +267,16 @@ class AnalysisWindow(QtWidgets.QMainWindow):
                 if self.tabs.tabText(i) != 'Files':
                     self.tabs.setTabEnabled(i, enable)
 
-        # Dis/enable specific tab
-        elif type(tabs) is unicode or type(tabs) is str:
-            if tabs in self.tab_order:
-                self.tabs.setTabEnabled(self.tab_order.index(tabs), enable)
-
         # Dis/enable several tabs
-        else:
+        elif isinstance(tabs, list):
             for tab in tabs:
                 if tab in self.tab_order:
                     self.tabs.setTabEnabled(self.tab_order.index(tab), enable)
+
+        # Dis/enable specific tab
+        else:
+            if tabs in self.tab_order:
+                self.tabs.setTabEnabled(self.tab_order.index(tabs), enable)
 
     def connect_tabs(self, tabs=None):
         """

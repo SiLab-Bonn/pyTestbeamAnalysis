@@ -23,7 +23,7 @@ class AnalysisStream(QtCore.QObject):
 
     def write(self, msg):
         if not self.signalsBlocked():
-            self.messageWritten.emit(unicode(msg))
+            self.messageWritten.emit(str(msg))  # Python 3, was unicode before
 
     @staticmethod
     def stdout():
