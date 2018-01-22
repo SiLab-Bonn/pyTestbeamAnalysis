@@ -4,6 +4,7 @@ import logging
 import unittest
 from PyQt5 import QtWidgets, QtCore, QtGui
 
+from testbeam_analysis.gui.main import AnalysisWindow
 from testbeam_analysis.gui.tab_widgets.files_tab import FilesTab
 from testbeam_analysis.gui.tab_widgets.setup_tab import SetupTab
 from testbeam_analysis.gui.tab_widgets import analysis_tabs
@@ -78,6 +79,8 @@ class TestGui(unittest.TestCase):
                                              name='Test')
         cls.parallel_analysis_widget = ParallelAnalysisWidget(parent=cls.main_widget, setup=cls.test_setup,
                                                               options=cls.test_options, name='Test')
+        # Create complete window
+        cls.analysis_window = AnalysisWindow()
 
     @classmethod
     def tearDownClass(cls):
