@@ -17,7 +17,7 @@ from testbeam_analysis.examples import (eutelescope,
                                         fei4_telescope,
                                         simulated_data)
 
-testing_path = os.path.dirname(__file__)
+testing_path = os.path.dirname(os.path.abspath(__file__))
 
 
 def copy_data(path, out_path):

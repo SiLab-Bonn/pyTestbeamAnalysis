@@ -7,7 +7,7 @@ import unittest
 from testbeam_analysis import track_analysis
 from testbeam_analysis.tools import analysis_utils, test_tools
 
-testing_path = os.path.dirname(__file__)
+testing_path = os.path.dirname(os.path.abspath(__file__))
 
 
 class TestTrackAnalysis(unittest.TestCase):

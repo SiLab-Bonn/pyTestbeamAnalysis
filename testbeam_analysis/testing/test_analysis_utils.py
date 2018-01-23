@@ -10,7 +10,7 @@ import numpy as np
 from testbeam_analysis.cpp import data_struct
 from testbeam_analysis.tools import analysis_utils, test_tools
 
-testing_path = os.path.dirname(__file__)
+testing_path = os.path.dirname(os.path.abspath(__file__))
 
 
 class TestAnalysisUtils(unittest.TestCase):

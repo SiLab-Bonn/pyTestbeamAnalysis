@@ -11,7 +11,7 @@ from testbeam_analysis.tools import test_tools
 from testbeam_analysis.tools import geometry_utils
 from testbeam_analysis.tools import analysis_utils
 
-testing_path = os.path.dirname(__file__)
+testing_path = os.path.dirname(os.path.abspath(__file__))
 
 
 class TestAlignmentAnalysis(unittest.TestCase):
