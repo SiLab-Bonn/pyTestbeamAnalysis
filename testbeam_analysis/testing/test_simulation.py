@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 
 from testbeam_analysis.tools import simulate_data, geometry_utils, analysis_utils, test_tools
 
-testing_path = os.path.dirname(__file__)
+testing_path = os.path.dirname(os.path.abspath(__file__))
 
 
 class TestHitAnalysis(unittest.TestCase):
