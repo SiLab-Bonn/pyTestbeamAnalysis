@@ -2,6 +2,8 @@ import sys
 import os
 import logging
 import unittest
+
+from queue import Queue
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 from testbeam_analysis.gui.main import AnalysisWindow
@@ -10,6 +12,7 @@ from testbeam_analysis.gui.tab_widgets.setup_tab import SetupTab
 from testbeam_analysis.gui.tab_widgets import analysis_tabs
 from testbeam_analysis.gui.gui_widgets.analysis_widgets import AnalysisWidget, ParallelAnalysisWidget
 from testbeam_analysis.gui.gui_widgets.option_widgets import OptionSlider, OptionText, OptionBool
+from testbeam_analysis.gui.gui_widgets.sub_windows import IPrealignmentWindow, ExceptionWindow, SettingsWindow
 
 
 class TestGui(unittest.TestCase):
@@ -74,13 +77,18 @@ class TestGui(unittest.TestCase):
         cls.efficiency_tab = analysis_tabs.EfficiencyTab(parent=cls.main_widget, setup=cls.test_setup,
                                                          options=cls.test_options, name='Efficiency',
                                                          tab_list='Last')
-        # Creat single analysis and parallel analysis widget
+        # Create single analysis and parallel analysis widget
         cls.analysis_widget = AnalysisWidget(parent=cls.main_widget, setup=cls.test_setup, options=cls.test_options,
                                              name='Test')
         cls.parallel_analysis_widget = ParallelAnalysisWidget(parent=cls.main_widget, setup=cls.test_setup,
                                                               options=cls.test_options, name='Test')
         # Create complete window
         cls.analysis_window = AnalysisWindow()
+
+        # Create sub-windows
+        cls.iprealignment_window = IPrealignmentWindow(Queue())
+        cls.exception_window = ExceptionWindow(AttributeError('Random exception'), 'Random traceback')
+        cls.settings_window = SettingsWindow(setup=cls.test_setup, options=cls.test_options)
 
     @classmethod
     def tearDownClass(cls):

@@ -522,7 +522,7 @@ class AnalysisWindow(QtWidgets.QMainWindow):
                 logging.error(msg=msg)
                 self.console_dock.setVisible(True)
                 return
-        except AttributeError:
+        except (AttributeError, RuntimeError):  # After last tab, thread will be deleted
             pass
 
         # Path to sessions directory in output_path
@@ -603,7 +603,7 @@ class AnalysisWindow(QtWidgets.QMainWindow):
                 logging.error(msg=msg)
                 self.console_dock.setVisible(True)
                 return
-        except AttributeError:
+        except (AttributeError, RuntimeError):  # After last tab, thread will be deleted
             pass
 
         caption = 'Load session'
