@@ -464,12 +464,12 @@ class AnalysisWindow(QtWidgets.QMainWindow):
                 self.tw[tab] = tmp_tw[tab]
 
                 # Get tab status of tab which is updated to set status of updated tab
-                enable = self.tabs.isTabEnabled(self.tab_order.index(tab)) if enable is None else enable
+                _enable = self.tabs.isTabEnabled(self.tab_order.index(tab)) if enable is None else enable
 
                 # Remove old tab, insert updated tab at same index and set status
                 self.tabs.removeTab(self.tab_order.index(tab))
                 self.tabs.insertTab(self.tab_order.index(tab), self.tw[tab], tab)
-                self.tabs.setTabEnabled(self.tab_order.index(tab), enable)
+                self.tabs.setTabEnabled(self.tab_order.index(tab), _enable)
 
         # Set the tab index to stay at the same tab after replacing old tabs
         self.tabs.setCurrentIndex(current_tab)
