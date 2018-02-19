@@ -443,10 +443,6 @@ class AlignmentTab(AnalysisWidget):
                         func=apply_alignment,
                         optional=True)
 
-        for x in [lambda: self._connect_vitables(files=self.output_file),
-                  lambda: self.btn_skip.deleteLater()]:
-            self.analysisFinished.connect(x)
-
         # Connect options widgets depending on each other
         self.option_widgets['align_duts'].selectionChanged.connect(lambda sel:
                                                                    self.option_widgets[
@@ -468,8 +464,14 @@ class AlignmentTab(AnalysisWidget):
         self.btn_ok.clicked.connect(lambda: self.btn_skip.setDisabled(True))
 
         # When global settings are updated, recreate state of alignment tab
+        # If alignment is skipped
         if options['skip_alignment']:
             self._skip_alignment(ask=False)
+        # If not, make connections
+        else:
+            for x in [lambda: self._connect_vitables(files=self.output_file),
+                      lambda: self.btn_skip.deleteLater()]:
+                self.analysisFinished.connect(x)
 
     def _skip_alignment(self, ask=True):
 
