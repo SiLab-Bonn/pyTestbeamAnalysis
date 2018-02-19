@@ -226,7 +226,7 @@ def plot_tracks_per_event(input_tracks_file, output_pdf_file=None, gui=False):
         with tb.open_file(input_tracks_file, 'r') as input_file_h5:
             fitted_tracks = False
             try:  # data has track candidates
-                _ = input_file_h5.root.TrackCandidates[:]
+                _ = input_file_h5.root.TrackCandidates
             except tb.NoSuchNodeError:  # data has fitted tracks
                 fitted_tracks = True
 
