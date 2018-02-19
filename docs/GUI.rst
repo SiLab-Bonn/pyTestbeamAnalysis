@@ -21,7 +21,7 @@ The graphical user interface offers the following features:
       .. code-block:: bash
          sudo apt-get install vitables
 
-After running
+After following the instructions given in the installation guide and after running
    .. code-block:: bash
       python setup.py develop
    in the *tesbeam analysis* folder, the GUI can be opened from the shell via
