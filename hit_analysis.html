@@ -188,20 +188,20 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>input_hits_file</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; File name of the hit table.</li>
-<li><strong>n_pixel</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#tuple" title="(in Python v2.7)"><em>tuple</em></a>) &#8211; Tuple of the total number of pixels (column/row).</li>
-<li><strong>pixel_mask_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; Name of the node containing the mask inside the output file.</li>
-<li><strong>output_mask_file</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; File name of the output mask file.</li>
-<li><strong>pixel_size</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#tuple" title="(in Python v2.7)"><em>tuple</em></a>) &#8211; Tuple of the pixel size (column/row). If None, assuming square pixels.</li>
-<li><strong>threshold</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; The threshold for pixel masking. The threshold is given in units of
+<li><strong>input_hits_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/string.html#module-string" title="(in Python v3.6)"><em>string</em></a>) &#8211; File name of the hit table.</li>
+<li><strong>n_pixel</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.6)"><em>tuple</em></a>) &#8211; Tuple of the total number of pixels (column/row).</li>
+<li><strong>pixel_mask_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/string.html#module-string" title="(in Python v3.6)"><em>string</em></a>) &#8211; Name of the node containing the mask inside the output file.</li>
+<li><strong>output_mask_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/string.html#module-string" title="(in Python v3.6)"><em>string</em></a>) &#8211; File name of the output mask file.</li>
+<li><strong>pixel_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.6)"><em>tuple</em></a>) &#8211; Tuple of the pixel size (column/row). If None, assuming square pixels.</li>
+<li><strong>threshold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a>) &#8211; The threshold for pixel masking. The threshold is given in units of
 sigma of the pixel noise (background subtracted). The lower the value
 the more pixels are masked.</li>
-<li><strong>filter_size</strong> (<em>scalar</em><em> or </em><a class="reference external" href="https://docs.python.org/2/library/functions.html#tuple" title="(in Python v2.7)"><em>tuple</em></a>) &#8211; Adjust the median filter size by giving the number of columns and rows.
+<li><strong>filter_size</strong> (<em>scalar</em><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.6)"><em>tuple</em></a>) &#8211; Adjust the median filter size by giving the number of columns and rows.
 The higher the value the more the background is smoothed and more
 pixels are masked.</li>
-<li><strong>dut_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; Name of the DUT. If None, file name of the hit table will be printed.</li>
-<li><strong>plot</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; If True, create additional output plots.</li>
-<li><strong>chunk_size</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Chunk size of the data when reading from file.</li>
+<li><strong>dut_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/string.html#module-string" title="(in Python v3.6)"><em>string</em></a>) &#8211; Name of the DUT. If None, file name of the hit table will be printed.</li>
+<li><strong>plot</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) &#8211; If True, create additional output plots.</li>
+<li><strong>chunk_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) &#8211; Chunk size of the data when reading from file.</li>
 </ul>
 </td>
 </tr>
@@ -218,18 +218,18 @@ pixels are masked.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>input_hits_file</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; Filename of the input hits file.</li>
-<li><strong>output_cluster_file</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; Filename of the output cluster file. If None, the filename will be derived from the input hits file.</li>
-<li><strong>input_disabled_pixel_mask_file</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; Filename of the input disabled mask file.</li>
-<li><strong>input_noisy_pixel_mask_file</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; Filename of the input disabled mask file.</li>
+<li><strong>input_hits_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/string.html#module-string" title="(in Python v3.6)"><em>string</em></a>) &#8211; Filename of the input hits file.</li>
+<li><strong>output_cluster_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/string.html#module-string" title="(in Python v3.6)"><em>string</em></a>) &#8211; Filename of the output cluster file. If None, the filename will be derived from the input hits file.</li>
+<li><strong>input_disabled_pixel_mask_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/string.html#module-string" title="(in Python v3.6)"><em>string</em></a>) &#8211; Filename of the input disabled mask file.</li>
+<li><strong>input_noisy_pixel_mask_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/string.html#module-string" title="(in Python v3.6)"><em>string</em></a>) &#8211; Filename of the input disabled mask file.</li>
 <li><strong>min_hit_charge</strong> (<em>uint</em>) &#8211; Minimum hit charge. Minimum possible hit charge must be given in order to correcly calculate the cluster coordinates.</li>
 <li><strong>max_hit_charge</strong> (<em>uint</em>) &#8211; Maximum hit charge. Hits wit charge above the limit will be ignored.</li>
 <li><strong>column_cluster_distance</strong> (<em>uint</em>) &#8211; Maximum column distance between hist so that they are assigned to the same cluster. Value of 0 effectively disables the clusterizer in column direction.</li>
 <li><strong>row_cluster_distance</strong> (<em>uint</em>) &#8211; Maximum row distance between hist so that they are assigned to the same cluster. Value of 0 effectively disables the clusterizer in row direction.</li>
 <li><strong>frame_cluster_distance</strong> (<em>uint</em>) &#8211; Sometimes an event has additional timing information (e.g. bunch crossing ID, frame ID). Value of 0 effectively disables the clusterization in time.</li>
-<li><strong>dut_name</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; Name of the DUT. If None, filename of the output cluster file will be used.</li>
-<li><strong>plot</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; If True, create additional output plots.</li>
-<li><strong>chunk_size</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Chunk size of the data when reading from file.</li>
+<li><strong>dut_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/string.html#module-string" title="(in Python v3.6)"><em>string</em></a>) &#8211; Name of the DUT. If None, filename of the output cluster file will be used.</li>
+<li><strong>plot</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) &#8211; If True, create additional output plots.</li>
+<li><strong>chunk_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) &#8211; Chunk size of the data when reading from file.</li>
 </ul>
 </td>
 </tr>

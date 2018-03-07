@@ -191,14 +191,14 @@ All permutations are considered (all clusters of the first device are correlated
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>input_cluster_files</strong> (<em>iterable</em>) &#8211; Iterable of filenames of the cluster files.</li>
-<li><strong>output_correlation_file</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; Filename of the output correlation file with the correlation histograms.</li>
+<li><strong>output_correlation_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/string.html#module-string" title="(in Python v3.6)"><em>string</em></a>) &#8211; Filename of the output correlation file with the correlation histograms.</li>
 <li><strong>n_pixels</strong> (<em>iterable of tuples</em>) &#8211; One tuple per DUT describing the total number of pixels (column/row),
 e.g. for two FE-I4 DUTs [(80, 336), (80, 336)].</li>
 <li><strong>pixel_size</strong> (<em>iterable of tuples</em>) &#8211; One tuple per DUT describing the pixel dimension (column/row),
 e.g. for two FE-I4 DUTs [(250, 50), (250, 50)].
 If None, assuming same pixel size for all DUTs.</li>
 <li><strong>dut_names</strong> (<em>iterable of strings</em>) &#8211; Names of the DUTs. If None, the DUT index will be used.</li>
-<li><strong>plot</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; If True, create additional output plots.</li>
+<li><strong>plot</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) &#8211; If True, create additional output plots.</li>
 <li><strong>chunk_size</strong> (<em>uint</em>) &#8211; Chunk size of the data when reading from file.</li>
 </ul>
 </td>
@@ -245,25 +245,25 @@ e.g. for two FE-I4 DUTs [(250, 50), (250, 50)].</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>input_correlation_file</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; Filename of the input correlation file.</li>
-<li><strong>output_alignment_file</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; Filename of the output alignment file.</li>
+<li><strong>input_correlation_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/string.html#module-string" title="(in Python v3.6)"><em>string</em></a>) &#8211; Filename of the input correlation file.</li>
+<li><strong>output_alignment_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/string.html#module-string" title="(in Python v3.6)"><em>string</em></a>) &#8211; Filename of the output alignment file.</li>
 <li><strong>z_positions</strong> (<em>iterable</em>) &#8211; The z positions of the DUTs in um.</li>
 <li><strong>pixel_size</strong> (<em>iterable of tuples</em>) &#8211; One tuple per DUT describing the pixel dimension (column/row),
 e.g. for two FE-I4 DUTs [(250, 50), (250, 50)].</li>
-<li><strong>s_n</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; The signal to noise ratio for peak signal over background peak. This should be specified when the background is fitted with a gaussian function.
+<li><strong>s_n</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.6)"><em>float</em></a>) &#8211; The signal to noise ratio for peak signal over background peak. This should be specified when the background is fitted with a gaussian function.
 Usually data with a lot if tracks per event have a gaussian background. A good S/N value can be estimated by investigating the correlation plot.
 The default value is usually fine.</li>
-<li><strong>fit_background</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Data with a lot if tracks per event have a gaussian background from the beam profile. Also try to fit this background to determine the correlation
+<li><strong>fit_background</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) &#8211; Data with a lot if tracks per event have a gaussian background from the beam profile. Also try to fit this background to determine the correlation
 peak correctly. If you see a clear 2D gaussian in the correlation plot this shoud be activated. If you have 1-2 tracks per event and large pixels
 this option should be off, because otherwise overfitting is possible.</li>
-<li><strong>reduce_background</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Reduce background (uncorrelated events) by using SVD of the 2D correlation array.</li>
+<li><strong>reduce_background</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) &#8211; Reduce background (uncorrelated events) by using SVD of the 2D correlation array.</li>
 <li><strong>dut_names</strong> (<em>iterable</em>) &#8211; Names of the DUTs. If None, the DUT index will be used.</li>
-<li><strong>no_fit</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Use Hough transformation to calculate slope and offset.</li>
-<li><strong>non_interactive</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Deactivate user interaction and estimate fit range automatically.</li>
+<li><strong>no_fit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) &#8211; Use Hough transformation to calculate slope and offset.</li>
+<li><strong>non_interactive</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) &#8211; Deactivate user interaction and estimate fit range automatically.</li>
 <li><strong>iterations</strong> (<em>uint</em>) &#8211; The number of iterations in non-interactive mode.</li>
-<li><strong>plot</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; If True, create additional output plots.</li>
-<li><strong>gui</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; If True, this function is excecuted from GUI and returns figures</li>
-<li><strong>queue</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a><em>, </em><a class="reference external" href="https://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; If gui is True and non_interactive is False, queue is a dict with a in and output queue to communicate with GUI thread</li>
+<li><strong>plot</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) &#8211; If True, create additional output plots.</li>
+<li><strong>gui</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) &#8211; If True, this function is excecuted from GUI and returns figures</li>
+<li><strong>queue</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.6)"><em>dict</em></a>) &#8211; If gui is True and non_interactive is False, queue is a dict with a in and output queue to communicate with GUI thread</li>
 </ul>
 </td>
 </tr>
@@ -285,12 +285,12 @@ Also the hard drive IO can be limiting (30 Mb/s read, 20 Mb/s write to the same 
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>input_hit_file</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; Filename of the input hits file (e.g. merged data file, tracklets file, etc.).</li>
-<li><strong>input_alignment_file</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; Filename of the input alignment file.</li>
-<li><strong>output_hit_file</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; Filename of the output hits file with hit data after alignment was applied.</li>
-<li><strong>inverse</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; If True, apply the inverse alignment.</li>
-<li><strong>force_prealignment</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; If True, use pre-alignment, even if alignment data is availale.</li>
-<li><strong>no_z</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; If True, do not change the z alignment. Needed since the z position is special for x / y based plane measurements.</li>
+<li><strong>input_hit_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/string.html#module-string" title="(in Python v3.6)"><em>string</em></a>) &#8211; Filename of the input hits file (e.g. merged data file, tracklets file, etc.).</li>
+<li><strong>input_alignment_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/string.html#module-string" title="(in Python v3.6)"><em>string</em></a>) &#8211; Filename of the input alignment file.</li>
+<li><strong>output_hit_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/string.html#module-string" title="(in Python v3.6)"><em>string</em></a>) &#8211; Filename of the output hits file with hit data after alignment was applied.</li>
+<li><strong>inverse</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) &#8211; If True, apply the inverse alignment.</li>
+<li><strong>force_prealignment</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) &#8211; If True, use pre-alignment, even if alignment data is availale.</li>
+<li><strong>no_z</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) &#8211; If True, do not change the z alignment. Needed since the z position is special for x / y based plane measurements.</li>
 <li><strong>use_duts</strong> (<em>iterable</em>) &#8211; Iterable of DUT indices to apply the alignment to. If None, use all DUTs.</li>
 <li><strong>chunk_size</strong> (<em>uint</em>) &#8211; Chunk size of the data when reading from file.</li>
 </ul>
@@ -320,7 +320,7 @@ function work only on already prealigned hits belonging to one track. Thus this 
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>input_track_candidates_file</strong> (<a class="reference external" href="https://docs.python.org/2/library/string.html#module-string" title="(in Python v2.7)"><em>string</em></a>) &#8211; file name with the track candidates table</li>
+<li><strong>input_track_candidates_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/string.html#module-string" title="(in Python v3.6)"><em>string</em></a>) &#8211; file name with the track candidates table</li>
 <li><strong>input_alignment_file</strong> (<em>pytables file</em>) &#8211; File name of the input aligment data</li>
 <li><strong>n_pixels</strong> (<em>iterable of tuples</em>) &#8211; One tuple per DUT describing the total number of pixels (column/row),
 e.g. for two FE-I4 DUTs [(80, 336), (80, 336)].</li>
@@ -339,13 +339,13 @@ does not have to be used in the fit itself! This is useful for time reference pl
 E.g.  To use telescope planes (first and last 3 planes) + time reference plane (3)
 selection_hit_duts = [0, 1, 2, 4, 5, 6, 7]</li>
 <li><strong>selection_track_quality</strong> (<em>uint</em><em> or </em><em>iterable</em><em> or </em><em>iterable of iterable</em>) &#8211; Track quality for each hit DUT.</li>
-<li><strong>initial_rotation</strong> (<a class="reference external" href="https://docs.python.org/2/library/array.html#module-array" title="(in Python v2.7)"><em>array</em></a>) &#8211; Initial rotation array.</li>
-<li><strong>initial_translation</strong> (<a class="reference external" href="https://docs.python.org/2/library/array.html#module-array" title="(in Python v2.7)"><em>array</em></a>) &#8211; Initial translation array.</li>
+<li><strong>initial_rotation</strong> (<a class="reference external" href="https://docs.python.org/3/library/array.html#module-array" title="(in Python v3.6)"><em>array</em></a>) &#8211; Initial rotation array.</li>
+<li><strong>initial_translation</strong> (<a class="reference external" href="https://docs.python.org/3/library/array.html#module-array" title="(in Python v3.6)"><em>array</em></a>) &#8211; Initial translation array.</li>
 <li><strong>max_iterations</strong> (<em>uint</em>) &#8211; Maximum number of iterations of calc residuals, apply rotation refit loop until constant result is expected.
 Usually the procedure converges rather fast (&lt; 5 iterations)</li>
 <li><strong>use_n_tracks</strong> (<em>uint</em>) &#8211; Defines the amount of tracks to be used for the alignment. More tracks can potentially make the result
 more precise, but will also increase the calculation time.</li>
-<li><strong>plot</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; If True, create additional output plots.</li>
+<li><strong>plot</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) &#8211; If True, create additional output plots.</li>
 <li><strong>chunk_size</strong> (<em>uint</em>) &#8211; Chunk size of the data when reading from file.</li>
 </ul>
 </td>
