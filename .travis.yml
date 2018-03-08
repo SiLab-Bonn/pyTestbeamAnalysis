@@ -32,7 +32,7 @@ notifications:
     
 cache:
   directories:
-  - $HOME/.pip-cache/
+    - $HOME/.pip-cache/
 
 # Setup miniconda python with needed packages
 before_install:
@@ -54,7 +54,7 @@ before_install:
   - conda info -a
   - conda create -q -n tba python="$TRAVIS_PYTHON_VERSION" pip
   - source activate tba
-  - conda install numpy cython pytables scipy matplotlib nose numba mock pytest-cov pyyaml
+  - conda install --quiet numpy cython pytables scipy matplotlib nose numba mock pytest-cov pyyaml pyqt  # https://github.com/conda/conda/issues/6487
   - pip install --upgrade pip
   - pip install progressbar-latest xvfbwrapper coverage python-coveralls pixel_clusterizer pylandau pytest
   - pip install -r requirements_docs.txt
@@ -74,10 +74,6 @@ script:
   
 after_success:
   - coveralls --data_file .coverage.*
+  - scripts/create_doc.sh
 
-deploy:
-  provider: script
-  script: scripts/create_doc.sh
-  on:
-    branch: development
   
