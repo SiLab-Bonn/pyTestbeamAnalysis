@@ -1,0 +1,416 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Graphical user interface &mdash; Testbeam Analysis 0.0.1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/silab.ico"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/banner.css" type="text/css" />
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="Testbeam Analysis 0.0.1 documentation" href="index.html"/>
+        <link rel="next" title="API" href="API.html"/>
+        <link rel="prev" title="Examples" href="Examples.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Testbeam Analysis
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">Installation guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Graphical user interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#file-selection">File selection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#setup">Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#analysis">Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#saving-loading-sessions">Saving/Loading sessions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="API.html">API</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Testbeam Analysis</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Graphical user interface</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/GUI.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="graphical-user-interface">
+<h1>Graphical user interface<a class="headerlink" href="#graphical-user-interface" title="Permalink to this headline">¶</a></h1>
+<p>The following documentation explains the features and usage of the graphical user interface (:GUI:) of <em>testbeam analysis</em>.
+The GUI is written in <em>PyQt</em> and intended to simplify the analysis procedure. Its structured into several <em>tabs</em>, one for each step of a complete analysis.
+The current analysis step generally depends on the preceding, thus the analysis has a consecutive structure.</p>
+<p>The graphical user interface offers the following features:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Input file consistency check and setup plotting</li>
+<li>Documentation of options via function <em>introspection</em></li>
+<li>Logging from analysis to GUI</li>
+<li>Exception handling</li>
+<li>Plotting results into GUI</li>
+<li>Saving and loading analysis sessions</li>
+<li>Running consecutive analysis without user interaction</li>
+<li>Multi-threading</li>
+<li>Support of <a class="reference external" href="https://github.com/uvemas/ViTables">ViTables</a></li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Due to current <a class="reference external" href="https://github.com/conda-forge/vitables-feedstock/issues/3">dependency issues</a> on <em>PyQt</em> version 5, a system installation of ViTables is required, e.g. on Ubuntu run
+.. code-block:: bash</p>
+<blockquote class="last">
+<div>sudo apt-get install vitables</div></blockquote>
+</div>
+</div></blockquote>
+<dl class="docutils">
+<dt>After following the instructions given in the installation guide and after running</dt>
+<dd><p class="first">in the <em>tesbeam analysis</em> folder, the GUI can be opened from the shell via
+.. code-block:: bash</p>
+<blockquote>
+<div>tba</div></blockquote>
+<div class="last admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">A minimum screen resolution of 1366 x 768 is required in order to display all features correctly.</p>
+</div>
+</dd>
+</dl>
+<div class="section" id="file-selection">
+<h2>File selection<a class="headerlink" href="#file-selection" title="Permalink to this headline">¶</a></h2>
+<p>The file selection tab provides a table in order to display and handle the input files of all <em>devices under test</em> (:DUT:).
+The input files can be selected via a button click or <em>dragged &amp; dropped</em> onto the table area on the left-hand side of the file selection tab.
+After file selection, the path to each input file, the DUT name for subsequent analysis as well as the file status (each input file is checked for required information)
+are displayed in the table. The table entries can be moved or deleted by usinf the buttons in the <em>Navigation</em> column.
+Each DUT can be optionally renamed by double-clicking on the respective field in the table, the default naming is <em>Tel_i</em> where <em>i</em> is the DUT index.
+The output folder for the following analysis can be selected via the respective button on the right-hand side of the tab.
+To proceed the analysis (e.g. press the &#8216;Ok&#8217; button), input files must be selected and their status must be <em>okay</em>.
+An example of the files selection tab is shown in <a class="reference internal" href="#label-files-tab"><span class="std std-ref">Example of the file selection for FE-I4 telescope data, consisting of 4 FE-I4 pixel detectors</span></a>.
+.. NOTE:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">required</span> <span class="nb">input</span> <span class="n">files</span> <span class="n">must</span> <span class="n">be</span> <span class="n">already</span> <span class="n">interpreted</span> <span class="n">hit</span> <span class="n">files</span> <span class="ow">in</span> <span class="o">*</span><span class="n">HDF5</span><span class="o">*</span> <span class="nb">format</span> <span class="n">where</span> <span class="n">each</span> <span class="n">file</span> <span class="n">must</span> <span class="n">contain</span> <span class="n">the</span> <span class="n">following</span> <span class="n">data</span><span class="p">:</span>
+<span class="o">-</span> <span class="o">*</span><span class="n">event_number</span><span class="o">*</span><span class="p">,</span> <span class="o">*</span><span class="n">frame</span><span class="o">*</span><span class="p">,</span> <span class="o">*</span><span class="n">charge</span><span class="o">*</span><span class="p">,</span> <span class="o">*</span><span class="n">column</span><span class="o">*</span><span class="p">,</span> <span class="o">*</span><span class="n">row</span><span class="o">*</span>
+</pre></div>
+</div>
+<div class="figure" id="id1">
+<span id="label-files-tab"></span><img alt="_static/file.png" src="_static/file.png" />
+<p class="caption"><span class="caption-text">Example of the file selection for FE-I4 telescope data, consisting of 4 FE-I4 pixel detectors</span></p>
+</div>
+</div>
+<div class="section" id="setup">
+<h2>Setup<a class="headerlink" href="#setup" title="Permalink to this headline">¶</a></h2>
+<p>The setup tab provides a plotting area on the left-hand side of the tab in order to plot the schematic test setup as well as a tab to input setup information for each DUT on the right-hand side.
+The telescope setup is plotted from the top- (upper) and side-view (lower) with rotations shown multiplied by a factor of 10 and correct relative distances in between DUTs.
+Information for each DUT can be input manually or selected from a list with predefined DUT-types. This list can be extended by the current, complete information via entering a <em>new</em> name into
+the respective field and pressing the respective button. DUT-types can be overwritten or removed from the list by typing <cite>name</cite> or <cite>:name</cite> respectively, into the respective field and pressing
+the button. Dead material (<em>scatter planes</em>) in the setup can be added by clicking the button in the upper-right corner.
+To proceed the analyis (e.g. press the &#8216;Ok&#8217; button), all required information regarding the setup of each DUT must be filled in.
+An example of the setup tab is shown in <a class="reference internal" href="#label-setup-tab"><span class="std std-ref">Example of setup tab for FE-I4 telescope data, consisting of 4 FE-I4 pixel detectors and a scatter plane</span></a>.</p>
+<div class="figure" id="id2">
+<span id="label-setup-tab"></span><img alt="_static/setup.png" src="_static/setup.png" />
+<p class="caption"><span class="caption-text">Example of setup tab for FE-I4 telescope data, consisting of 4 FE-I4 pixel detectors and a scatter plane</span></p>
+</div>
+</div>
+<div class="section" id="analysis">
+<h2>Analysis<a class="headerlink" href="#analysis" title="Permalink to this headline">¶</a></h2>
+<p>The analysis tabs each represent a complete step of the underlying <em>testbeam analysis</em> and contain input options of one or more functions.
+In general, they consist of a plotting area on the left-hand side of the tab and an input area for the options of the respective analysis functions on the right-hand side.
+The plotting area contains the result plots of the analysis step. Result plots can be grouped into several tabs for analysis steps with multiple functions.</p>
+<dl class="docutils">
+<dt>The option input area contains three different types of options:</dt>
+<dd><ul class="first last simple">
+<li><table class="first docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">needed:</th><td class="field-body">Options that must be set. The default value of the option is pre-set.</td>
+</tr>
+</tbody>
+</table>
+</li>
+<li><table class="first docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">optional:</th><td class="field-body">Options that can be set but are not required. The default value is <cite>None</cite>. To effectively set the option, the corresponding <cite>check box</cite> has to be checked.</td>
+</tr>
+</tbody>
+</table>
+</li>
+<li><table class="first docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">fixed:</th><td class="field-body">Options that must not be changed. They are displayed as text at the bottom of the option area.</td>
+</tr>
+</tbody>
+</table>
+</li>
+</ul>
+</dd>
+</dl>
+<p>All options are documented and their widgets created via <a class="reference external" href="http://book.pythontips.com/en/latest/object_introspection.html#inspect-module">introspection</a> of the corresponding function.
+The documentation is shown as a <em>tooltip</em> when hovering over the respective option name. Furthermore, the current value of the option is shown as a <em>tooltip</em>
+when hovering over the input widget.</p>
+<blockquote>
+<div><a class="reference internal image-reference" href="_static/option_doc.png"><img alt="_static/option_doc.png" src="_static/option_doc.png" style="width: 49%;" /></a>
+</div></blockquote>
+<dl class="docutils">
+<dt>There are two different analysis tab versions for:</dt>
+<dd><ul class="first last">
+<li><dl class="first docutils">
+<dt>analysis steps which are applied to :each input file: individually (e.g. <em>Noisy pixel removal</em>):</dt>
+<dd><p class="first">Each DUT is represented by a sub-tab in order to individually select input options and display result plots of the underlying analysis functions</p>
+<img alt="_static/noisy.png" class="last" src="_static/noisy.png" />
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>analyis steps which are applied to :output files: of previous analysis steps (e.g. <em>Prealignment</em>):</dt>
+<dd><p class="first">Single tab with input options and result plots for all underlying analysis functions</p>
+<img alt="_static/prealignmnet.png" class="last" src="_static/prealignmnet.png" />
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+<p>The analysis is started by clicking the &#8220;Ok&#8221; button on the bottom of the tab. A progressbar shows the current progress in percent or current task (e.g. &#8220;Analysis&#8221; or &#8220;Plotting&#8221;).
+A logging console provides information obtained from the underlying analysis function. The logging console can be shown/hidden via <cite>CTRL+L</cite> or in the <cite>Appearance</cite> menu (<a class="reference internal" href="#label-noisy-logging"><span class="std std-ref">Logging console on Noisy Pixel tab</span></a>).
+After completion of the analysis, the tab is marked as &#8220;completed&#8221; via . Each completed analysis can be re-run by clicking the corresponding button on the bottom of the tab.
+Re-running a tab requires to reset all subsequent analysis tabs. A complete, consecutive analysis with default values can be run by <cite>CTRL+R</cite> or in the <cite>Run</cite> menu.</p>
+<div class="figure" id="id3">
+<span id="label-noisy-logging"></span><img alt="_static/noisy_logger.png" src="_static/noisy_logger.png" />
+<p class="caption"><span class="caption-text">Logging console on Noisy Pixel tab</span></p>
+</div>
+</div>
+<div class="section" id="saving-loading-sessions">
+<h2>Saving/Loading sessions<a class="headerlink" href="#saving-loading-sessions" title="Permalink to this headline">¶</a></h2>
+<p>The current analysis progress can be saved via <cite>CTRL+S</cite> and a previously saved analysis session can be loaded via <cite>CTRL+O</cite> or in the <cite>Session</cite> menu.
+Loading a session restores all tabs with their complete information from the respective session.
+.. NOTE:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>Sessions are saved in a `yaml` file in a `sessions/` folder in the current output folder. In order to load a session,
+the output files of that session need to be :either: in the same folder as the session `yaml` :or: in their original output folder.
+Sessions can only be saved after the setup is completed and in between analysis steps.
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="API.html" class="btn btn-neutral float-right" title="API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Examples.html" class="btn btn-neutral" title="Examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, SiLab Bonn.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+        <span class="fa fa-book"> Other Versions</span>
+        v: development
+        <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+        <dl>
+            <dt>Branches</dt>
+            <dd><a href="GUI.html">development</a></dd>
+        </dl>
+    </div>
+</div>
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
