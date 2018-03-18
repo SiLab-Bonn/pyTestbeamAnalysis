@@ -116,13 +116,13 @@ There are two different analysis tab versions for:
       
    .. image:: _static/gui/noisy.png
 
-      Each DUT is represented by a sub-tab in order to individually select input options and display result plots of the underlying analysis functions  
+Each DUT is represented by a sub-tab in order to individually select input options and display result plots of the underlying analysis functions  
       
 - analyis steps which are applied to :output files: of previous analysis steps (e.g. *Prealignment*):
       
    .. image:: _static/gui/prealignment.png
 
-      Single tab with input options and result plots for all underlying analysis functions 
+Single tab with input options and result plots for all underlying analysis functions 
 
 The analysis is started by clicking the "Ok" button on the bottom of the tab. A progressbar shows the current progress in percent or current task (e.g. "Analysis" or "Plotting").
 A logging console provides information obtained from the underlying analysis function. The logging console can be shown/hidden via `CTRL+L` or in the `Appearance` menu.  
