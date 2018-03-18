@@ -102,27 +102,27 @@ All options are documented and their widgets created via `introspection <http://
 The documentation is shown as a *tooltip* when hovering over the respective option name. Furthermore, the current value of the option is shown as a *tooltip*
 when hovering over the input widget.
 
-   .. image:: _static/gui/option_doc.png
-      :width: 45%
+.. image:: _static/gui/option_doc.png
+   :width: 45%
 
-   .. image:: _static/gui/option_doc2.png
-      :width: 45%
+.. image:: _static/gui/option_doc2.png
+   :width: 45%
 
 Option area with needed, optional and fixed options. The documentation and currentvalue are shown as a *tooltip*. Optionals have corresponding *check boxes* to set their values.
  
 There are two different analysis tab versions for:
 
 - analysis steps which are applied to :each input file: individually (e.g. *Noisy pixel removal*):
-
-Each DUT is represented by a sub-tab in order to individually select input options and display result plots of the underlying analysis functions  
       
-.. image:: _static/gui/noisy.png
+   .. image:: _static/gui/noisy.png
+
+      Each DUT is represented by a sub-tab in order to individually select input options and display result plots of the underlying analysis functions  
       
 - analyis steps which are applied to :output files: of previous analysis steps (e.g. *Prealignment*):
-
-Single tab with input options and result plots for all underlying analysis functions 
       
-.. image:: _static/gui/prealignment.png
+   .. image:: _static/gui/prealignment.png
+
+      Single tab with input options and result plots for all underlying analysis functions 
 
 The analysis is started by clicking the "Ok" button on the bottom of the tab. A progressbar shows the current progress in percent or current task (e.g. "Analysis" or "Plotting").
 A logging console provides information obtained from the underlying analysis function. The logging console can be shown/hidden via `CTRL+L` or in the `Appearance` menu.  
