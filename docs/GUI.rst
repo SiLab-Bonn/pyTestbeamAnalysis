@@ -1,34 +1,45 @@
 Graphical user interface
 ========================
 
-The following documentation explains the features and usage of the graphical user interface (:GUI:) of *testbeam analysis*.
+The following documentation explains the features and usage of the graphical user interface (GUI) of *testbeam analysis*.
 The GUI is written in *PyQt* and intended to simplify the analysis procedure. Its structured into several *tabs*, one for each step of a complete analysis.
 The current analysis step generally depends on the preceding, thus the analysis has a consecutive structure.
 
 The graphical user interface offers the following features: 
 
-   - Input file consistency check and setup plotting
-   - Documentation of options via function *introspection*
-   - Logging from analysis to GUI
-   - Exception handling
-   - Plotting results into GUI
-   - Saving and loading analysis sessions
-   - Running consecutive analysis without user interaction
-   - Multi-threading
-   - Support of `ViTables <https://github.com/uvemas/ViTables>`_
-   .. NOTE::
-      Due to current `dependency issues <https://github.com/conda-forge/vitables-feedstock/issues/3>`_ on *PyQt* version 5, a system installation of ViTables is required, e.g. on Ubuntu run
-      .. code-block:: bash
-         sudo apt-get install vitables
+- Input file consistency check and setup plotting
+- Documentation of options via function *introspection*
+- Logging from analysis to GUI
+- Exception handling
+- Plotting results into GUI
+- Saving and loading analysis sessions
+- Running consecutive analysis without user interaction
+- Multi-threading
+- Support of `ViTables <https://github.com/uvemas/ViTables>`_
+
+.. NOTE::
+
+   Due to current `dependency issues <https://github.com/conda-forge/vitables-feedstock/issues/3>`_ on *PyQt* version 5, a system installation of ViTables is required, e.g. on Ubuntu run
+   
+.. code-block:: bash
+
+   sudo apt-get install vitables
 
 After following the instructions given in the installation guide and after running
-   .. code-block:: bash
-      python setup.py develop
-   in the *tesbeam analysis* folder, the GUI can be opened from the shell via
-   .. code-block:: bash
-      tba
-   .. NOTE::
-      A minimum screen resolution of 1366 x 768 is required in order to display all features correctly.
+
+.. code-block:: bash
+      
+   python setup.py develop
+
+in the *tesbeam analysis* folder, the GUI can be opened from the shell via
+   
+.. code-block:: bash
+
+   tba
+
+.. NOTE::
+
+   A minimum screen resolution of 1366 x 768 is required in order to display all features correctly.
    
 File selection
 **************
@@ -40,16 +51,19 @@ are displayed in the table. The table entries can be moved or deleted by usinf t
 Each DUT can be optionally renamed by double-clicking on the respective field in the table, the default naming is *Tel_i* where *i* is the DUT index.
 The output folder for the following analysis can be selected via the respective button on the right-hand side of the tab.
 To proceed the analysis (e.g. press the 'Ok' button), input files must be selected and their status must be *okay*. 
-An example of the files selection tab is shown in :ref:`label_files_tab`.
+An example of the files selection tab is shown below.
+
 .. NOTE::
+
    The required input files must be already interpreted hit files in *HDF5* format where each file must contain the following data:
-   - *event_number*, *frame*, *charge*, *column*, *row*
 
-.. _label_files_tab:
+   .. code-block:: bash
 
-.. figure:: _static/file.png
+      event_number frame charge column row
 
-   Example of the file selection for FE-I4 telescope data, consisting of 4 FE-I4 pixel detectors
+.. image:: _static/gui/file.png
+
+Example of the file selection for FE-I4 telescope data, consisting of 4 FE-I4 pixel detectors
 
 Setup 
 *****
@@ -60,13 +74,11 @@ Information for each DUT can be input manually or selected from a list with pred
 the respective field and pressing the respective button. DUT-types can be overwritten or removed from the list by typing `name` or `:name` respectively, into the respective field and pressing
 the button. Dead material (*scatter planes*) in the setup can be added by clicking the button in the upper-right corner.
 To proceed the analyis (e.g. press the 'Ok' button), all required information regarding the setup of each DUT must be filled in.
-An example of the setup tab is shown in :ref:`label_setup_tab`.
+An example of the setup tab is shown below.
 
-.. _label_setup_tab:
+.. image:: _static/gui/setup.png
 
-.. figure:: _static/setup.png
-
-   Example of setup tab for FE-I4 telescope data, consisting of 4 FE-I4 pixel detectors and a scatter plane
+Example of setup tab for FE-I4 telescope data, consisting of 4 FE-I4 pixel detectors and a scatter plane
 
 Analysis
 ********
@@ -76,54 +88,60 @@ In general, they consist of a plotting area on the left-hand side of the tab and
 The plotting area contains the result plots of the analysis step. Result plots can be grouped into several tabs for analysis steps with multiple functions.
 
 The option input area contains three different types of options:
-   - :needed:
-      Options that must be set. The default value of the option is pre-set.
-   - :optional:
-      Options that can be set but are not required. The default value is `None`. To effectively set the option, the corresponding `check box` has to be checked.
-   - :fixed:
-      Options that must not be changed. They are displayed as text at the bottom of the option area.
+
+- :needed:
+   Options that must be set. The default value of the option is pre-set.
+
+- :optional:
+   Options that can be set but are not required. The default value is `None`. To effectively set the option, the corresponding `check box` has to be checked.
+
+- :fixed:
+   Options that must not be changed. They are displayed as text at the bottom of the option area.
 
 All options are documented and their widgets created via `introspection <http://book.pythontips.com/en/latest/object_introspection.html#inspect-module>`_ of the corresponding function.
 The documentation is shown as a *tooltip* when hovering over the respective option name. Furthermore, the current value of the option is shown as a *tooltip*
 when hovering over the input widget.
 
-   .. image:: _static/option_doc.png
-       :width: 49%
-   
-   .. image:: _static/option_doc2.png
-       :width: 49%
+.. image:: _static/gui/option_doc.png
+   :width: 45%
 
-      Option area with :needed:, :optional: and :fixed: options. The documentation and currentvalue are shown as a *tooltip*. Optionals have corresponding **check boxes* to set their values.
+.. image:: _static/gui/option_doc2.png
+   :width: 45%
+
+Option area with needed, optional and fixed options. The documentation and currentvalue are shown as a *tooltip*. Optionals have corresponding *check boxes* to set their values.
  
 There are two different analysis tab versions for:
-   - analysis steps which are applied to :each input file: individually (e.g. *Noisy pixel removal*):
-      Each DUT is represented by a sub-tab in order to individually select input options and display result plots of the underlying analysis functions  
+
+- analysis steps which are applied to :each input file: individually (e.g. *Noisy pixel removal*):
       
-      .. image:: _static/noisy.png
+   .. image:: _static/gui/noisy.png
+
+Each DUT is represented by a sub-tab in order to individually select input options and display result plots of the underlying analysis functions  
       
-   - analyis steps which are applied to :output files: of previous analysis steps (e.g. *Prealignment*):
-      Single tab with input options and result plots for all underlying analysis functions 
+- analyis steps which are applied to :output files: of previous analysis steps (e.g. *Prealignment*):
       
-      .. image:: _static/prealignmnet.png
+   .. image:: _static/gui/prealignment.png
+
+Single tab with input options and result plots for all underlying analysis functions 
 
 The analysis is started by clicking the "Ok" button on the bottom of the tab. A progressbar shows the current progress in percent or current task (e.g. "Analysis" or "Plotting").
-A logging console provides information obtained from the underlying analysis function. The logging console can be shown/hidden via `CTRL+L` or in the `Appearance` menu (:ref:`label_noisy_logging`).  
+A logging console provides information obtained from the underlying analysis function. The logging console can be shown/hidden via `CTRL+L` or in the `Appearance` menu.  
 After completion of the analysis, the tab is marked as "completed" via . Each completed analysis can be re-run by clicking the corresponding button on the bottom of the tab.
 Re-running a tab requires to reset all subsequent analysis tabs. A complete, consecutive analysis with default values can be run by `CTRL+R` or in the `Run` menu.
 
-.. _label_noisy_logging:
+.. image:: _static/gui/noisy_logger.png
 
-.. figure:: _static/noisy_logger.png
-
-   Logging console on Noisy Pixel tab
+Logging console on Noisy Pixel tab
 
 Saving/Loading sessions
 ***********************
 
 The current analysis progress can be saved via `CTRL+S` and a previously saved analysis session can be loaded via `CTRL+O` or in the `Session` menu.
 Loading a session restores all tabs with their complete information from the respective session.
+
 .. NOTE::
+   
    Sessions are saved in a `yaml` file in a `sessions/` folder in the current output folder. In order to load a session,
-   the output files of that session need to be :either: in the same folder as the session `yaml` :or: in their original output folder.
+   the output files of that session need to be *either* in the same folder as the session `yaml` *or* in their original output folder.
    Sessions can only be saved after the setup is completed and in between analysis steps.
 
