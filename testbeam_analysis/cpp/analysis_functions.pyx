@@ -3,7 +3,7 @@
 # cython: wraparound=False
 from numpy cimport ndarray
 from libc.stdint cimport uint8_t, uint16_t, uint32_t, uint64_t, int64_t
-from data_struct cimport numpy_hit_info, numpy_cluster_info
+from testbeam_analysis.cpp.data_struct cimport numpy_hit_info, numpy_cluster_info
 
 import numpy as np
 cimport numpy as cnp
@@ -45,7 +45,7 @@ def get_in1d_sorted(cnp.ndarray[cnp.int64_t, ndim=1] array_one, cnp.ndarray[cnp.
 
 
 def hist_1d(cnp.ndarray[cnp.int32_t, ndim=1] x, const unsigned int & n_x, cnp.ndarray[cnp.uint32_t, ndim=1] array_result):
-    histogram_1d( < int*& > x.data, < const unsigned int&> x.shape[0], < const unsigned int&> n_x, < uint32_t*& > array_result.data) 
+    histogram_1d( < int*& > x.data, < const unsigned int&> x.shape[0], < const unsigned int&> n_x, < uint32_t*& > array_result.data)
 
 
 def hist_2d(cnp.ndarray[cnp.int32_t, ndim=1] x, cnp.ndarray[cnp.int32_t, ndim=1] y, const unsigned int & n_x, const unsigned int & n_y, cnp.ndarray[cnp.uint32_t, ndim=1] array_result):
