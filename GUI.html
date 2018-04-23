@@ -27,28 +27,20 @@
   
 
   
-  
     <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-    <link rel="stylesheet" href="_static/banner.css" type="text/css" />
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="Testbeam Analysis 0.0.1 documentation" href="index.html"/>
-        <link rel="next" title="API" href="API.html"/>
-        <link rel="prev" title="Examples" href="Examples.html"/> 
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/banner.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API" href="API.html" />
+    <link rel="prev" title="Examples" href="Examples.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
@@ -117,7 +109,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Testbeam Analysis</a>
@@ -125,9 +117,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -171,12 +164,11 @@
             
   <div class="section" id="graphical-user-interface">
 <h1>Graphical user interface<a class="headerlink" href="#graphical-user-interface" title="Permalink to this headline">¶</a></h1>
-<p>The following documentation explains the features and usage of the graphical user interface (:GUI:) of <em>testbeam analysis</em>.
+<p>The following documentation explains the features and usage of the graphical user interface (GUI) of <em>testbeam analysis</em>.
 The GUI is written in <em>PyQt</em> and intended to simplify the analysis procedure. Its structured into several <em>tabs</em>, one for each step of a complete analysis.
 The current analysis step generally depends on the preceding, thus the analysis has a consecutive structure.</p>
 <p>The graphical user interface offers the following features:</p>
-<blockquote>
-<div><ul class="simple">
+<ul class="simple">
 <li>Input file consistency check and setup plotting</li>
 <li>Documentation of options via function <em>introspection</em></li>
 <li>Logging from analysis to GUI</li>
@@ -189,24 +181,23 @@ The current analysis step generally depends on the preceding, thus the analysis 
 </ul>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p>Due to current <a class="reference external" href="https://github.com/conda-forge/vitables-feedstock/issues/3">dependency issues</a> on <em>PyQt</em> version 5, a system installation of ViTables is required, e.g. on Ubuntu run
-.. code-block:: bash</p>
-<blockquote class="last">
-<div>sudo apt-get install vitables</div></blockquote>
+<p class="last">Due to current <a class="reference external" href="https://github.com/conda-forge/vitables-feedstock/issues/3">dependency issues</a> on <em>PyQt</em> version 5, a system installation of ViTables is required, e.g. on Ubuntu run</p>
 </div>
-</div></blockquote>
-<dl class="docutils">
-<dt>After following the instructions given in the installation guide and after running</dt>
-<dd><p class="first">in the <em>tesbeam analysis</em> folder, the GUI can be opened from the shell via
-.. code-block:: bash</p>
-<blockquote>
-<div>tba</div></blockquote>
-<div class="last admonition note">
+<div class="highlight-bash"><div class="highlight"><pre><span></span>sudo apt-get install vitables
+</pre></div>
+</div>
+<p>After following the instructions given in the installation guide and after running</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python setup.py develop
+</pre></div>
+</div>
+<p>in the <em>tesbeam analysis</em> folder, the GUI can be opened from the shell via</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>tba
+</pre></div>
+</div>
+<div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">A minimum screen resolution of 1366 x 768 is required in order to display all features correctly.</p>
 </div>
-</dd>
-</dl>
 <div class="section" id="file-selection">
 <h2>File selection<a class="headerlink" href="#file-selection" title="Permalink to this headline">¶</a></h2>
 <p>The file selection tab provides a table in order to display and handle the input files of all <em>devices under test</em> (:DUT:).
@@ -216,16 +207,16 @@ are displayed in the table. The table entries can be moved or deleted by usinf t
 Each DUT can be optionally renamed by double-clicking on the respective field in the table, the default naming is <em>Tel_i</em> where <em>i</em> is the DUT index.
 The output folder for the following analysis can be selected via the respective button on the right-hand side of the tab.
 To proceed the analysis (e.g. press the &#8216;Ok&#8217; button), input files must be selected and their status must be <em>okay</em>.
-An example of the files selection tab is shown in <a class="reference internal" href="#label-files-tab"><span class="std std-ref">Example of the file selection for FE-I4 telescope data, consisting of 4 FE-I4 pixel detectors</span></a>.
-.. NOTE:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">required</span> <span class="nb">input</span> <span class="n">files</span> <span class="n">must</span> <span class="n">be</span> <span class="n">already</span> <span class="n">interpreted</span> <span class="n">hit</span> <span class="n">files</span> <span class="ow">in</span> <span class="o">*</span><span class="n">HDF5</span><span class="o">*</span> <span class="nb">format</span> <span class="n">where</span> <span class="n">each</span> <span class="n">file</span> <span class="n">must</span> <span class="n">contain</span> <span class="n">the</span> <span class="n">following</span> <span class="n">data</span><span class="p">:</span>
-<span class="o">-</span> <span class="o">*</span><span class="n">event_number</span><span class="o">*</span><span class="p">,</span> <span class="o">*</span><span class="n">frame</span><span class="o">*</span><span class="p">,</span> <span class="o">*</span><span class="n">charge</span><span class="o">*</span><span class="p">,</span> <span class="o">*</span><span class="n">column</span><span class="o">*</span><span class="p">,</span> <span class="o">*</span><span class="n">row</span><span class="o">*</span>
+An example of the files selection tab is shown below.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>The required input files must be already interpreted hit files in <em>HDF5</em> format where each file must contain the following data:</p>
+<div class="last highlight-bash"><div class="highlight"><pre><span></span>event_number frame charge column row
 </pre></div>
 </div>
-<div class="figure" id="id1">
-<span id="label-files-tab"></span><img alt="_static/file.png" src="_static/file.png" />
-<p class="caption"><span class="caption-text">Example of the file selection for FE-I4 telescope data, consisting of 4 FE-I4 pixel detectors</span></p>
 </div>
+<img alt="_images/file.png" src="_images/file.png" />
+<p>Example of the file selection for FE-I4 telescope data, consisting of 4 FE-I4 pixel detectors</p>
 </div>
 <div class="section" id="setup">
 <h2>Setup<a class="headerlink" href="#setup" title="Permalink to this headline">¶</a></h2>
@@ -235,20 +226,17 @@ Information for each DUT can be input manually or selected from a list with pred
 the respective field and pressing the respective button. DUT-types can be overwritten or removed from the list by typing <cite>name</cite> or <cite>:name</cite> respectively, into the respective field and pressing
 the button. Dead material (<em>scatter planes</em>) in the setup can be added by clicking the button in the upper-right corner.
 To proceed the analyis (e.g. press the &#8216;Ok&#8217; button), all required information regarding the setup of each DUT must be filled in.
-An example of the setup tab is shown in <a class="reference internal" href="#label-setup-tab"><span class="std std-ref">Example of setup tab for FE-I4 telescope data, consisting of 4 FE-I4 pixel detectors and a scatter plane</span></a>.</p>
-<div class="figure" id="id2">
-<span id="label-setup-tab"></span><img alt="_static/setup.png" src="_static/setup.png" />
-<p class="caption"><span class="caption-text">Example of setup tab for FE-I4 telescope data, consisting of 4 FE-I4 pixel detectors and a scatter plane</span></p>
-</div>
+An example of the setup tab is shown below.</p>
+<img alt="_images/setup.png" src="_images/setup.png" />
+<p>Example of setup tab for FE-I4 telescope data, consisting of 4 FE-I4 pixel detectors and a scatter plane</p>
 </div>
 <div class="section" id="analysis">
 <h2>Analysis<a class="headerlink" href="#analysis" title="Permalink to this headline">¶</a></h2>
 <p>The analysis tabs each represent a complete step of the underlying <em>testbeam analysis</em> and contain input options of one or more functions.
 In general, they consist of a plotting area on the left-hand side of the tab and an input area for the options of the respective analysis functions on the right-hand side.
 The plotting area contains the result plots of the analysis step. Result plots can be grouped into several tabs for analysis steps with multiple functions.</p>
-<dl class="docutils">
-<dt>The option input area contains three different types of options:</dt>
-<dd><ul class="first last simple">
+<p>The option input area contains three different types of options:</p>
+<ul class="simple">
 <li><table class="first docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -277,61 +265,52 @@ The plotting area contains the result plots of the analysis step. Result plots c
 </table>
 </li>
 </ul>
-</dd>
-</dl>
 <p>All options are documented and their widgets created via <a class="reference external" href="http://book.pythontips.com/en/latest/object_introspection.html#inspect-module">introspection</a> of the corresponding function.
 The documentation is shown as a <em>tooltip</em> when hovering over the respective option name. Furthermore, the current value of the option is shown as a <em>tooltip</em>
 when hovering over the input widget.</p>
+<a class="reference internal image-reference" href="_images/option_doc.png"><img alt="_images/option_doc.png" src="_images/option_doc.png" style="width: 45%;" /></a>
+<a class="reference internal image-reference" href="_images/option_doc2.png"><img alt="_images/option_doc2.png" src="_images/option_doc2.png" style="width: 45%;" /></a>
+<p>Option area with needed, optional and fixed options. The documentation and currentvalue are shown as a <em>tooltip</em>. Optionals have corresponding <em>check boxes</em> to set their values.</p>
+<p>There are two different analysis tab versions for:</p>
+<ul>
+<li><p class="first">analysis steps which are applied to :each input file: individually (e.g. <em>Noisy pixel removal</em>):</p>
 <blockquote>
-<div><a class="reference internal image-reference" href="_static/option_doc.png"><img alt="_static/option_doc.png" src="_static/option_doc.png" style="width: 49%;" /></a>
+<div><img alt="_images/noisy.png" src="_images/noisy.png" />
 </div></blockquote>
-<dl class="docutils">
-<dt>There are two different analysis tab versions for:</dt>
-<dd><ul class="first last">
-<li><dl class="first docutils">
-<dt>analysis steps which are applied to :each input file: individually (e.g. <em>Noisy pixel removal</em>):</dt>
-<dd><p class="first">Each DUT is represented by a sub-tab in order to individually select input options and display result plots of the underlying analysis functions</p>
-<img alt="_static/noisy.png" class="last" src="_static/noisy.png" />
-</dd>
-</dl>
-</li>
-<li><dl class="first docutils">
-<dt>analyis steps which are applied to :output files: of previous analysis steps (e.g. <em>Prealignment</em>):</dt>
-<dd><p class="first">Single tab with input options and result plots for all underlying analysis functions</p>
-<img alt="_static/prealignmnet.png" class="last" src="_static/prealignmnet.png" />
-</dd>
-</dl>
 </li>
 </ul>
-</dd>
-</dl>
+<p>Each DUT is represented by a sub-tab in order to individually select input options and display result plots of the underlying analysis functions</p>
+<ul>
+<li><p class="first">analyis steps which are applied to :output files: of previous analysis steps (e.g. <em>Prealignment</em>):</p>
+<blockquote>
+<div><img alt="_images/prealignment.png" src="_images/prealignment.png" />
+</div></blockquote>
+</li>
+</ul>
+<p>Single tab with input options and result plots for all underlying analysis functions</p>
 <p>The analysis is started by clicking the &#8220;Ok&#8221; button on the bottom of the tab. A progressbar shows the current progress in percent or current task (e.g. &#8220;Analysis&#8221; or &#8220;Plotting&#8221;).
-A logging console provides information obtained from the underlying analysis function. The logging console can be shown/hidden via <cite>CTRL+L</cite> or in the <cite>Appearance</cite> menu (<a class="reference internal" href="#label-noisy-logging"><span class="std std-ref">Logging console on Noisy Pixel tab</span></a>).
+A logging console provides information obtained from the underlying analysis function. The logging console can be shown/hidden via <cite>CTRL+L</cite> or in the <cite>Appearance</cite> menu.
 After completion of the analysis, the tab is marked as &#8220;completed&#8221; via . Each completed analysis can be re-run by clicking the corresponding button on the bottom of the tab.
 Re-running a tab requires to reset all subsequent analysis tabs. A complete, consecutive analysis with default values can be run by <cite>CTRL+R</cite> or in the <cite>Run</cite> menu.</p>
-<div class="figure" id="id3">
-<span id="label-noisy-logging"></span><img alt="_static/noisy_logger.png" src="_static/noisy_logger.png" />
-<p class="caption"><span class="caption-text">Logging console on Noisy Pixel tab</span></p>
-</div>
+<img alt="_images/noisy_logger.png" src="_images/noisy_logger.png" />
+<p>Logging console on Noisy Pixel tab</p>
 </div>
 <div class="section" id="saving-loading-sessions">
 <h2>Saving/Loading sessions<a class="headerlink" href="#saving-loading-sessions" title="Permalink to this headline">¶</a></h2>
 <p>The current analysis progress can be saved via <cite>CTRL+S</cite> and a previously saved analysis session can be loaded via <cite>CTRL+O</cite> or in the <cite>Session</cite> menu.
-Loading a session restores all tabs with their complete information from the respective session.
-.. NOTE:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>Sessions are saved in a `yaml` file in a `sessions/` folder in the current output folder. In order to load a session,
-the output files of that session need to be :either: in the same folder as the session `yaml` :or: in their original output folder.
-Sessions can only be saved after the setup is completed and in between analysis steps.
-</pre></div>
+Loading a session restores all tabs with their complete information from the respective session.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Sessions are saved in a <cite>yaml</cite> file in a <cite>sessions/</cite> folder in the current output folder. In order to load a session,
+the output files of that session need to be <em>either</em> in the same folder as the session <cite>yaml</cite> <em>or</em> in their original output folder.
+Sessions can only be saved after the setup is completed and in between analysis steps.</p>
 </div>
 </div>
 </div>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -353,7 +332,7 @@ Sessions can only be saved after the setup is completed and in between analysis 
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -385,6 +364,7 @@ Sessions can only be saved after the setup is completed and in between analysis 
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
             VERSION:'0.0.1',
+            LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -403,14 +383,13 @@ Sessions can only be saved after the setup is completed and in between analysis 
     <script type="text/javascript" src="_static/js/theme.js"></script>
   
 
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
       });
-  </script>
-   
+  </script> 
 
 </body>
 </html>
