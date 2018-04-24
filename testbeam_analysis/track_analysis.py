@@ -22,7 +22,7 @@ from testbeam_analysis.tools import geometry_utils
 from testbeam_analysis.tools import kalman
 
 
-def find_tracks(input_tracklets_file, input_alignment_file, output_track_candidates_file, min_cluster_distance=False, chunk_size=1000000):
+def find_tracks(input_tracklets_file, input_alignment_file, output_track_candidates_file, min_cluster_distance=False, chunk_size=100000):
     '''Takes first DUT track hit and tries to find matching hits in subsequent DUTs.
     The output is the same array with resorted hits into tracks. A track quality is set to
     be able to cut on good (less scattered) tracks.
