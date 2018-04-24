@@ -201,7 +201,7 @@ class SMC(object):
         with tb.open_file(table_file_in, 'r') as in_file:
             node = in_file.get_node(in_file.root, node_name)
 
-            output_file = tempfile.NamedTemporaryFile(delete=False)
+            output_file = tempfile.NamedTemporaryFile(delete=False, dir=os.getcwd())
             with tb.open_file(output_file.name, 'w') as out_file:
                 # Create result table with specified data format
                 # From given pytables tables description
