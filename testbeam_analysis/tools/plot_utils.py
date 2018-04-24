@@ -544,7 +544,10 @@ def plot_prealignments(x, mean_fitted, mean_error_fitted, n_cluster, ref_name, d
         global offset
         global fit
         global fit_fn
-        fit, _ = curve_fit(testbeam_analysis.tools.analysis_utils.linear, x[selected_data], mean_fitted[selected_data])  # Fit straight line
+        try:
+            fit, _ = curve_fit(testbeam_analysis.tools.analysis_utils.linear, x[selected_data], mean_fitted[selected_data])  # Fit straight line
+        except TypeError:  # if number of points < 2
+            raise RuntimeError('Cannot find any correlation, please check data!')
         fit_fn = np.poly1d(fit[::-1])
         offset = fit_fn(x) - mean_fitted  # Calculate straight line fit offset
 
