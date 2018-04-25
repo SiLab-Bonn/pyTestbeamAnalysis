@@ -877,7 +877,11 @@ def calculate_efficiency(input_tracks_file, input_alignment_file, bin_size, sens
 #                 plot_utils.plot_track_distances(distance_min_array, distance_max_array, distance_mean_array)
                 plot_utils.efficiency_plots(total_hit_hist, total_track_density, total_track_density_with_DUT_hit, efficiency, actual_dut, minimum_track_density, plot_range=dimensions, cut_distance=cut_distance, output_pdf=output_pdf, gui=gui, figs=figs)
 
-                logging.info('Efficiency =  %1.4f +- %1.4f', np.ma.mean(efficiency), np.ma.std(efficiency))
+                # Calculate mean efficiency without any binning
+                eff, eff_err_min, eff_err_pl = analysis_utils.get_mean_efficiency(array_pass=total_track_density_with_DUT_hit,
+                                                                                  array_total=total_track_density)
+
+                logging.info('Efficiency =  %1.4f - %1.4f + %1.4f', eff, eff_err_min, eff_err_pl)
                 efficiencies.append(np.ma.mean(efficiency))
 
                 dut_group = out_file_h5.create_group(out_file_h5.root, 'DUT_%d' % actual_dut)
@@ -1131,7 +1135,7 @@ def calculate_purity(input_tracks_file, input_alignment_file, bin_size, sensor_s
 
                 pure_hits.append(total_pure_hit_hist.sum())
                 total_hits.append(total_hit_hist.sum())
-                logging.info('Pure hits / total hits: %d / %d, Purity = %.2f', total_pure_hit_hist.sum(), total_hit_hist.sum(), total_pure_hit_hist.sum()/total_hit_hist.sum() * 100)
+                logging.info('Pure hits / total hits: %d / %d, Purity = %.2f', total_pure_hit_hist.sum(), total_hit_hist.sum(), total_pure_hit_hist.sum() / total_hit_hist.sum() * 100)
 
                 # Store parameters used for purity calculation
                 out_purity.attrs.bin_size = bin_size

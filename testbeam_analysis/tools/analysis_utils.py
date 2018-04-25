@@ -13,6 +13,7 @@ import tables as tb
 from numba import njit
 from scipy.interpolate import splrep, sproot
 from scipy import stats
+from scipy import optimize
 from scipy.optimize import curve_fit
 from scipy.integrate import quad
 
@@ -574,8 +575,8 @@ def find_closest(arr, values):
     See also: http://stackoverflow.com/questions/8914491/finding-the-nearest-value-and-return-the-index-of-array-in-python
     '''
     idx = arr.searchsorted(values)
-    idx = np.clip(idx, 1, len(arr)-1)
-    left = arr[idx-1]
+    idx = np.clip(idx, 1, len(arr) - 1)
+    left = arr[idx - 1]
     right = arr[idx]
     idx -= values - left < right - values
     return idx
@@ -625,7 +626,8 @@ def gauss_box(x, *p):
     See also: http://stackoverflow.com/questions/24230233/fit-gaussian-integral-function-to-data
     '''
     A, mu, sigma, a = p
-    return quad(lambda t: gauss(x-t,A,mu,sigma),-a,a)[0]
+    return quad(lambda t: gauss(x - t, A, mu, sigma), -a, a)[0]
+
 
 # Vetorize function to use with np.arrays
 gauss_box_vfunc = np.vectorize(gauss_box, excluded=["*p"])
@@ -647,95 +649,100 @@ def get_median_from_histogram(counts, bin_positions):
     return np.median(np.repeat(bin_positions, counts))
 
 
-def get_mean_efficiency(array_pass, array_total, method=0):
-    ''' Function to calculate the mean and the error of the efficiency using different approaches.
-    No good approach was found.
+def get_mean_efficiency(array_pass, array_total, interval=0.68):
+    ''' Calculates the mean efficiency with statistical errors
 
-    Parameters
-    ---------
-    array_pass : numpy array
-        Array with tracks that were seen by the DUT. Can be a masked array.
-    array_total : numpy array
-        Array with total tracks in the DUT. Can be a masked array.
-    method: number
-        Select the method to calculate the efficiency:
-          1: Take mean and RMS of the efficiency per bin. Each bin is weightd by the number of total tracks.
-             Results in symmetric unphysical error bars that cover also efficiencies > 100%
-          2: Takes a correct binomial distribution and calculate the correct confidence interval after combining all pixels.
-             Gives correct mean and correct statistical error bars. Systematic efficiency variations are not taken into account, thus
-             the error bar is very small. Further info: https://root.cern.ch/doc/master/classTEfficiency.html
-          3: As 2. but for each efficiency bin separately. Then the distribution is fitted by a constant using the
-             asymmetric error bars. Gives too high efficiencies and small,  asymmetric error bars.
-          4: Use a special Binomial efficiency fit. Gives best mean efficiency but unphysical symmetric error
-             bars. Further info: https://root.cern.ch/doc/master/classTBinomialEfficiencyFitter.html
+        Parameters
+        ----------
+        array_pass, array_total : numpy array
+        interval: float
+            Confidence interval for error calculation
+
+        Returns
+        -------
+        Tuple with: Mean efficiency and positive negative confidence interval limits
     '''
 
-    n_bins = np.ma.count(array_pass)
-    logging.info('Calculate the mean efficiency from %d pixels', n_bins)
+    def get_eff_pdf(eff, k, N):
+        ''' Returns the propability density function for the efficiency
+            estimator eff = k/N, where k are the passing events and N the
+            total number of events.
 
-    if method == 0:
-        def weighted_avg_and_std(values, weights):  # http://stackoverflow.com/questions/2413522/weighted-standard-deviation-in-numpy
-            average = np.average(values, weights=weights)
-            variance = np.average((values - average) ** 2, weights=weights)  # Fast and numerically precise
-            return (average, np.sqrt(variance))
+            http://lss.fnal.gov/archive/test-tm/2000/fermilab-tm-2286-cd.pdf
+            page 5
 
-        efficiency = np.ma.compressed(array_pass) / np.ma.compressed(array_total)
-        return weighted_avg_and_std(efficiency, np.ma.compressed(array_total))
-    else:  # Use CERN ROOT
-        try:
-            from ROOT import TH1D, TEfficiency, TF1, TBinomialEfficiencyFitter
-        except ImportError:
-            raise RuntimeError('To use these method you have to install CERN ROOT with python bindings.')
+            This function gives plot 1 of paper, when multiplied by Gamma(N+1)
+        '''
 
-        # Convert not masked numpy array values to 1D ROOT double histogram
-        def fill_1d_root_hist(array, name):
-            length = np.ma.count(array_pass)
-            root_hist = TH1D(name, "hist", length, 0, length)
-            for index, value in enumerate(np.ma.compressed(array).ravel()):
-                root_hist.SetBinContent(index, value)
-            return root_hist
+        # The paper has the function defined by gamma functions. These explode quickly
+        # leading to numerical instabilities. The beta function does the same...
+        # np.float(gamma(N + 2)) / np.float((gamma(k + 1) * gamma(N - k + 1))) * eff**k * (1. - eff)**(N - k)
 
-        if method == 1:
-            # The following combines all pixel and gives correct
-            # statistical errors but does not take the systematic
-            # variations of within the  efficiency histogram parts into account
-            # Thus gives very small error bars
-            hist_pass = TH1D("hist_pass", "hist", 1, 0, 1)
-            hist_total = TH1D("hist_total", "hist", 1, 0, 1)
-            hist_pass.SetBinContent(0, np.ma.sum(array_pass))
-            hist_total.SetBinContent(0, np.ma.sum(array_total))
-            efficiency = TEfficiency(hist_pass, hist_total)
-            return efficiency.GetEfficiency(0), efficiency.GetEfficiencyErrorLow(0), efficiency.GetEfficiencyErrorUp(0)
-        elif method == 2:
-            # The following fits the efficiency with a constant but
-            # it gives symmetric error bars, thus unphysical results
-            # This is not understood yet and thus not used
+        return stats.beta.pdf(eff, k + 1, N - k + 1)
 
-            # Convert numpy array to ROOT hists
-            hist_pass = fill_1d_root_hist(array_pass, 'h_pass')
-            hist_total = fill_1d_root_hist(array_total, 'h_total')
-            f1 = TF1("f1", "pol0(0)", 0, n_bins)
-            fitter = TBinomialEfficiencyFitter(hist_pass, hist_total)
-            r = fitter.Fit(f1, "SE")
-            eff_err_low = r.LowerError(0)
-            eff_err_up = r.UpperError(0)
-            efficiency = r.GetParams()[0]
-            return efficiency, eff_err_low, eff_err_up
-        elif method == 3:
-            # Fit point of each efficiency bin using asymmetric error bars
-            # Parameters described here: https://root.cern.ch/doc/master/classTGraph.html#a61269bcd47a57296f0f1d57ceff8feeb
-            # This gives too high efficiency and too small error
+    def get_eff_prop_int(eff, k, N):
+        ''' C.d.f. of beta function = P.d.f. integral -infty..eff '''
+        return stats.beta.cdf(eff, k + 1, N - k + 1)
 
-            # Convert numpy array to ROOT hists
-            hist_pass = fill_1d_root_hist(array_pass, 'h_pass')
-            hist_total = fill_1d_root_hist(array_total, 'h_total')
-            efficiency = TEfficiency(hist_pass, hist_total)
-            f1 = TF1("f1", "pol0(0)", 0, n_bins)
-            fit_result = efficiency.CreateGraph().Fit(f1, "SFEM")
-            eff_mean = fit_result.GetParams()[0]
-            eff_err_low = fit_result.LowerError(0)
-            eff_err_up = fit_result.UpperError(0)
-            return eff_mean, eff_err_low, eff_err_up
+    def interval_integ(a, b, k, N):
+        ''' Return the integral of the efficiency pdf using limits [a, b]:
+        '''
+        return get_eff_prop_int(b, k, N) - get_eff_prop_int(a, k, N)
+
+    def find_inter(k, N, interval):
+        ''' Calculates Integral(pdf(k, N))_err-^err+ = interval with
+        | err- - err+| != min.
+        '''
+
+        def minimizeMe(x):
+            a, b = x[0], x[1]
+            return b - a
+
+        def get_start_values(k, N):
+            # Discretize issue for numerical calculation
+            eff = np.linspace(0.8 * float(k) / N, 1.2 * float(k) / N, 1000000)
+            eff = eff[eff <= 1.]
+            # Normalize by discretization
+            p = get_eff_pdf(eff, k, N=N)
+            max_i = np.argmin(np.abs(eff - float(k) / N))
+
+            for y in np.linspace(p[max_i] * 0.9, 0, 1000):
+                if max_i > 0:
+                    idx_l = np.abs(y - p[:max_i]).argmin()
+                else:
+                    idx_l = 0
+
+                if max_i < p.shape[0]:
+                    idx_r = np.abs(y - p[max_i:]).argmin() + max_i
+                else:
+                    idx_r = p.shape[0] - 1
+
+                if p[idx_l:idx_r].sum() * np.diff(eff)[0] > interval:
+                    break
+            return eff[idx_l], eff[idx_r]
+
+        # Quick determination of start value to enhance convergence
+        max_a = float(k) / N  # a < maximum eff
+        min_b = float(k) / N  # b > maximum eff
+
+        a0, b0 = get_start_values(k, N)
+
+        cons = ({'type': 'eq', 'fun': lambda x: np.abs(interval_integ(x[0], x[1], k, N) - interval)})
+
+        # Find b
+        res = optimize.minimize(fun=minimizeMe, method='SLSQP', x0=(a0, b0),
+                                bounds=((0., max_a), (min_b, 1.)),
+                                constraints=cons)
+
+        return res.x
+
+    k = array_pass.sum()
+    N = array_total.sum()
+    eff = k.astype(np.float) / N
+
+    lim_e_m, lim_e_p = find_inter(k, N, interval)
+
+    return eff, lim_e_m - eff, lim_e_p - eff
 
 
 def fwhm(x, y):
@@ -925,12 +932,12 @@ def fit_residuals_vs_position(hist, xedges, yedges, xlabel="", ylabel="", title=
 
 
 def hough_transform(img, theta_res=1.0, rho_res=1.0, return_edges=False):
-    thetas = np.linspace(-90.0, 0.0, np.ceil(90.0/theta_res) + 1)
-    thetas = np.concatenate((thetas, -thetas[len(thetas)-2::-1]))
+    thetas = np.linspace(-90.0, 0.0, np.ceil(90.0 / theta_res) + 1)
+    thetas = np.concatenate((thetas, -thetas[len(thetas) - 2::-1]))
     thetas = np.deg2rad(thetas)
     width, height = img.shape
     diag_len = np.sqrt((width - 1)**2 + (height - 1)**2)
-    q = np.ceil(diag_len/rho_res)
+    q = np.ceil(diag_len / rho_res)
     nrhos = 2 * q + 1
     rhos = np.linspace(-q * rho_res, q * rho_res, nrhos)
 

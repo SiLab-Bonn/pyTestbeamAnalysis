@@ -103,18 +103,15 @@ class SMC(object):
             raise NotImplementedError('Data alignment is only supported '
                                       'on event_number')
 
-
-
         # Get the table node name
         with tb.open_file(table_file_in) as in_file:
             if not table:  # Find the table node
-                tables = in_file.list_nodes('/',classname='Table') # get all nodes of type 'table'
-                if  len(tables) == 1: # if there is only one table, take this one
+                tables = in_file.list_nodes('/', classname='Table')  # get all nodes of type 'table'
+                if len(tables) == 1:  # if there is only one table, take this one
                     self.node_name = tables[0].name
-                else:  #  Multiple tables
-                    raise RuntimeError('No table node defined and '
-                                       'multiple table nodes found in file')
-            elif isinstance(table,(list,tuple,set)):  # possible names
+                else:  # Multiple tables
+                    raise RuntimeError('No table node defined and multiple table nodes found in file')
+            elif isinstance(table, (list, tuple, set)):  # possible names
                 self.node_name = None
                 for node_cand in table:
                     try:
@@ -123,8 +120,7 @@ class SMC(object):
                     except tb.NoSuchNodeError:
                         pass
                 if not self.node_name:
-                    raise RuntimeError(
-                        'No table nodes with names %s found', str(table))
+                    raise RuntimeError('No table nodes with names %s found', str(table))
             else:  # string
                 self.node_name = table
 
@@ -155,6 +151,7 @@ class SMC(object):
         assert len(self.start_i) == len(self.stop_i)
 
     def _map(self):
+        chunk_size_per_core = int(self.chunk_size / self.n_cores)
         if self.n_cores == 1:
             self.tmp_files = [self._work(self.table_file_in,
                                          self.node_name,
@@ -163,7 +160,7 @@ class SMC(object):
                                          self.node_desc,
                                          self.start_i[0],
                                          self.stop_i[0],
-                                         self.chunk_size)]
+                                         chunk_size_per_core)]
         else:
             # Run function in parallel
             pool = Pool(self.n_cores)
@@ -179,7 +176,7 @@ class SMC(object):
                                   node_desc=self.node_desc,
                                   start_i=self.start_i[i],
                                   stop_i=self.stop_i[i],
-                                  chunk_size=self.chunk_size
+                                  chunk_size=chunk_size_per_core
                                   )
                 jobs.append(job)
 
@@ -204,7 +201,7 @@ class SMC(object):
         with tb.open_file(table_file_in, 'r') as in_file:
             node = in_file.get_node(in_file.root, node_name)
 
-            output_file = tempfile.NamedTemporaryFile(delete=False)
+            output_file = tempfile.NamedTemporaryFile(delete=False, dir=os.getcwd())
             with tb.open_file(output_file.name, 'w') as out_file:
                 # Create result table with specified data format
                 # From given pytables tables description

@@ -93,6 +93,7 @@ def run_analysis():
     # Merge the cluster tables to one merged table aligned at the event number
     dut_alignment.merge_cluster_data(input_cluster_files=input_cluster_files,
                                      output_merged_file=os.path.join(output_folder, 'Merged.h5'),
+                                     n_pixels=n_pixels,
                                      pixel_size=pixel_size)
 
     # Apply the prealignment to the merged cluster table to create tracklets
