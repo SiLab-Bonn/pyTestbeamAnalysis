@@ -105,11 +105,27 @@ class SetupTab(QtWidgets.QWidget):
             btn_scatter.clicked.connect(x)
         self.tabs.setCornerWidget(btn_scatter)
 
+        # Buttons
         # Proceed button
         self.btn_ok = QtWidgets.QPushButton('Ok')
         self.btn_ok.clicked.connect(lambda: self._handle_input())
         self.btn_ok.setDisabled(True)
-        layout_right.addWidget(self.btn_ok)
+        # Safe button
+        self.btn_save = QtWidgets.QPushButton('Save setup')
+        self.btn_save.setDisabled(True)
+        self.btn_save.clicked.connect(lambda: self._handle_input(save=True))
+        # Load button
+        self.btn_load = QtWidgets.QPushButton('Load setup')
+        self.btn_load.clicked.connect(lambda: self.load_setup())
+
+        # Button layout
+        layout_buttons = QtWidgets.QHBoxLayout()
+        layout_buttons.addWidget(self.btn_load)
+        layout_buttons.addWidget(self.btn_save)
+        layout_buttons.addWidget(self.btn_ok)
+
+        # Add to right layout
+        layout_right.addLayout(layout_buttons)
         right_widget = QtWidgets.QWidget()
         right_widget.setLayout(layout_right)
 
@@ -486,13 +502,14 @@ class SetupTab(QtWidgets.QWidget):
         # Check input after removal to enable proceed button
         self._check_input()
 
-    def _handle_input(self, custom=None):
+    def _handle_input(self, custom=None, save=False):
         """
         Method to read input parameters of each dut from the UI. If custom is not None, only the specific
         dut properties of the custom dut type "custom" are read. The dut type "custom" is added to self._dut_types
         and permanently saved to the dut_types file.
 
         :param custom: str; name of new custom dut type
+        :param save: bool; whether to save the setup; if False, proceed analysis. If True, only save setup without proceeding
         """
 
         # Read input parameters and make list of of each parameter for all duts, then save to output data
@@ -576,9 +593,35 @@ class SetupTab(QtWidgets.QWidget):
             if self.scatter_data['sct_names']:
                 self.data['scatter_planes'] = self.scatter_data
 
-            self.isFinished = True
-            self.analysisFinished.emit('Setup', self.tab_list)
-            self.set_read_only()
+            # Ok button clicked; continue analysis
+            if not save:
+                self.isFinished = True
+                self.analysisFinished.emit('Setup', self.tab_list)
+                self.set_read_only()
+
+            # Saving setup to file
+            else:
+
+                # Make dialog to safe setup
+                caption = 'Save setup'
+                setup_path = QtWidgets.QFileDialog.getSaveFileName(parent=self,
+                                                                   caption=caption,
+                                                                   directory='.',
+                                                                   filter='*.yaml')[0]
+                # User selected a file to safe setup in
+                if setup_path:
+
+                    # Add .yaml if it wasn't written in the name; due to static method can't set default suffix
+                    if 'yaml' not in setup_path.split('.'):
+                        setup_path += '.yaml'
+
+                    # Safe session in yaml-file
+                    with open(setup_path, 'w') as f_write:
+                        yaml.safe_dump(self.data, f_write, default_flow_style=False)
+
+                    d, f = os.path.split(setup_path)
+                    msg = 'Successfully saved current setup to %s in %s' % (f, d)
+                    self._emit_message(msg)
 
         # Read only dut properties of custom dut type or remove/overwrite predefined type
         else:
@@ -819,9 +862,10 @@ class SetupTab(QtWidgets.QWidget):
                 else:
                     self._handle_widgets[dut]['button_h'].setDisabled(True)
 
-        # Set the status of the proceed button
+        # Set the status of the proceed and save button
         if skip_props is None:
             self.btn_ok.setDisabled(broken)
+            self.btn_save.setDisabled(broken)
 
     def set_read_only(self, read_only=True):
         """
@@ -851,28 +895,79 @@ class SetupTab(QtWidgets.QWidget):
 
         self.tabs.cornerWidget().setDisabled(read_only)
         self.btn_ok.setDisabled(read_only)
+        self.btn_load.setDisabled(read_only)
 
-    def load_setup(self, setup):
+    def load_setup(self, setup=None):
         """
         Loads data from a saved setup into the SetubTab
+
+        :param setup: dict or None; If None, setup will be loaded from file by user
         """
+
+        # Whether to init the tabs for each DUT (loading session) or just fill in info (loading setup only)
+        init_flag = True if setup else False
+
+        # User loads setup from SetupTab
+        if setup is None:
+
+            caption = 'Load setup'
+            setup_path = QtWidgets.QFileDialog.getOpenFileName(parent=self,
+                                                               caption=caption,
+                                                               directory='.',
+                                                               filter='*.yaml')[0]
+            # User selected a file to safe setup in
+            if setup_path:
+
+                # Safe session in yaml-file
+                with open(setup_path, 'r') as f_read:
+                    setup = yaml.safe_load(f_read)
+
+                d, f = os.path.split(setup_path)
+                msg = 'Successfully loaded setup from %s in %s' % (f, d)
+                self._emit_message(msg)
+
+            # Loading file was canceled
+            else:
+                return
+
+        # Empty setup
+        if not setup:
+            d, f = os.path.split(setup_path)
+            msg = 'Loaded setup %s from %s is empty. Aborted.' % (f, d)
+            self._emit_message(msg)
+            return
 
         # Required keys in setup
         reqs = ('dut_names', 'rotations', 'pixel_size', 'n_pixels')
 
-        # Return if one key is missing
+        # Check requirements
+        missing_keys = []
         for req in reqs:
             if req not in setup:
+                missing_keys.append(req)
+
+        # If keys are missing, abort
+        if missing_keys:
+            msg = 'Setup missing %s. Aborted.' % ', '.join(missing_keys)
+            self._emit_message(msg)
+            return
+
+        # Init tabs for DUTs and fill with saved setup
+        if init_flag:
+            self.input_data(setup)
+        # Check if number of DUTs in setup matches number of tabs
+        else:
+            if len(self.tw.keys()) != len(setup['dut_names']):
+                msg = 'Number of DUTs in setup (%i) does not match number of DUTs in session (%i). Aborted.'\
+                      % (len(setup['dut_names']), len(self.tw.keys()))
+                self._emit_message(msg)
                 return
 
         # Init some variables
-        sct_setup = setup['scatter_planes']
+        sct_setup = None if 'scatter_planes' not in setup else setup['scatter_planes']
         rotations = ['rot_alpha', 'rot_beta', 'rot_gamma']
         pixel_size = ['pitch_col', 'pitch_row']
         n_pixels = ['n_cols', 'n_rows']
-
-        # Init tabs for DUTs and fill with saved setup
-        self.input_data(setup)
 
         for i, key in enumerate(setup['dut_names']):
             for prop in self._dut_props:
