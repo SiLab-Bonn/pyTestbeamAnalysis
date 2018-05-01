@@ -746,6 +746,16 @@ class EfficiencyTab(AnalysisWidget):
                         func=calculate_efficiency,
                         optional=True)
 
+        self.add_option(option='col_range',
+                        default_value=[[0, setup['n_pixels'][i][0]] for i in range(setup['n_duts'])],
+                        func=calculate_efficiency,
+                        optional=True)
+
+        self.add_option(option='row_range',
+                        default_value=[[0, setup['n_pixels'][i][1]] for i in range(setup['n_duts'])],
+                        func=calculate_efficiency,
+                        optional=True)
+
         self.add_option(option='gui',
                         default_value=True,
                         func=calculate_efficiency,

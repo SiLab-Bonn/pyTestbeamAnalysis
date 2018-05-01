@@ -260,6 +260,237 @@ class OptionBool(QtWidgets.QWidget):
             self.valueChanged.emit(self.rb_t.isChecked())
 
 
+class OptionRangeBox(QtWidgets.QWidget):
+    """
+    Option range boxes for floats and ints. Shows the value
+    """
+
+    valueChanged = QtCore.pyqtSignal(list)  # Either int or float
+
+    def __init__(self, name, default_value, optional, tooltip, dtype, parent=None):
+        super(OptionRangeBox, self).__init__(parent)
+
+        # Store dtype
+        self._dtype = dtype
+        self.default_value = default_value
+        self.update_tooltip(default_value)
+
+        # Slider with textbox to the right
+        layout_2 = QtWidgets.QHBoxLayout()
+        label_min = QtWidgets.QLabel('min.')
+        self.min_box = QtWidgets.QSpinBox() if 'float' not in self._dtype else QtWidgets.QDoubleSpinBox()
+        label_max = QtWidgets.QLabel('max.')
+        self.max_box = QtWidgets.QSpinBox() if 'float' not in self._dtype else QtWidgets.QDoubleSpinBox()
+        self.min_box.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+        self.max_box.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+        layout_min = QtWidgets.QHBoxLayout()
+        layout_min.setAlignment(QtCore.Qt.AlignCenter)
+        layout_max = QtWidgets.QHBoxLayout()
+        layout_max.setAlignment(QtCore.Qt.AlignCenter)
+        layout_min.addWidget(label_min)
+        layout_min.addWidget(self.min_box)
+        layout_min.addStretch()
+        layout_max.addWidget(label_max)
+        layout_max.addWidget(self.max_box)
+        layout_max.addStretch()
+        layout_2.addLayout(layout_min)
+        layout_2.addLayout(layout_max)
+
+        # Option name with spinboxes below
+        layout = QtWidgets.QVBoxLayout(self)
+        text = QtWidgets.QLabel(name)
+        if tooltip:
+            text.setToolTip(tooltip)
+        if optional:
+            layout_1 = QtWidgets.QHBoxLayout()
+            layout_1.addWidget(text)
+            layout_1.addStretch(0)
+            check_box = QtWidgets.QCheckBox()
+            layout_1.addWidget(check_box)
+            layout.addLayout(layout_1)
+            check_box.stateChanged.connect(lambda v: self._set_readonly(v == 0))
+            self._set_readonly()
+        else:
+            layout.addWidget(text)
+        layout.addLayout(layout_2)
+
+        if default_value is not None:
+            self.min_box.setMinimum(0)
+            self.min_box.setMaximum(default_value[-1] - 1)
+            self.min_box.setValue(0)
+            self.max_box.setMinimum(self.min_box.minimum() + 1)
+            self.max_box.setMaximum(default_value[-1])
+            self.max_box.setValue(default_value[-1])
+
+        self.min_box.valueChanged.connect(lambda _: self._emit_value())
+        self.max_box.valueChanged.connect(lambda v: self.min_box.setMaximum(v - 1))
+        self.max_box.valueChanged.connect(lambda _: self._emit_value())
+
+    def update_tooltip(self, val):
+        self.setToolTip('Current value: {}, (default value: {})'.format(val, self.default_value))
+
+    def load_value(self, value):
+
+        if value is not None:  # value can be None
+            self.min_box.setValue(value[0])
+            self.max_box.setValue(value[-1])
+            self.update_tooltip(value)
+
+    def _set_readonly(self, value=True):
+
+        palette = QtGui.QPalette()
+        if value:
+            palette.setColor(QtGui.QPalette.Base, QtCore.Qt.gray)
+            palette.setColor(QtGui.QPalette.Text, QtCore.Qt.darkGray)
+        else:
+            palette.setColor(QtGui.QPalette.Base, QtCore.Qt.white)
+            palette.setColor(QtGui.QPalette.Text, QtCore.Qt.black)
+
+        self.min_box.setReadOnly(value)
+        self.max_box.setReadOnly(value)
+        self.min_box.setPalette(palette)
+        self.max_box.setPalette(palette)
+        self._emit_value()
+
+    def _emit_value(self):
+        if self.min_box.isReadOnly() and self.max_box.isReadOnly():
+            value = [None] #if self.default_value is None else self.default_value
+            self.update_tooltip(value)
+            self.valueChanged.emit(value)
+        else:
+            # Separate options that need int dtypes e.g. range(int) from floats
+            value = [self.min_box.value(), self.max_box.value()]
+            self.update_tooltip(value)
+            self.valueChanged.emit(value)
+
+
+class OptionMultiRangeBox(QtWidgets.QWidget):
+    """
+    Option range boxes for floats and ints for several ranges.
+    """
+
+    valueChanged = QtCore.pyqtSignal(list)
+
+    def __init__(self, name, labels, default_value, optional, tooltip, dtype, parent=None):
+        super(OptionMultiRangeBox, self).__init__(parent)
+
+        # Store dtype
+        self._dtype = dtype
+        self.default_value = default_value
+        self.labels = labels
+        self.update_tooltip(default_value)
+
+        # Check default value
+        if default_value is None:  # None is only supported for all values
+            default_value = 1
+        if not isinstance(default_value, collections.Iterable):
+            default_value = [[0, default_value]] * len(labels)
+        if len(labels) != len(default_value):
+            raise ValueError('Number of default values does not match number of parameters')
+
+        # Option name with range boxes
+        layout = QtWidgets.QVBoxLayout(self)
+        text = QtWidgets.QLabel(name)
+        if tooltip:
+            text.setToolTip(tooltip)
+        if optional:  # Values can be unset
+            layout_1 = QtWidgets.QHBoxLayout()
+            layout_1.addWidget(text)
+            layout_1.addStretch(0)
+            check_box = QtWidgets.QCheckBox()
+            layout_1.addWidget(check_box)
+            layout.addLayout(layout_1)
+        else:
+            layout.addWidget(text)
+
+        # Dict for range boxes
+        self.range_boxes = {}
+
+        for i, label in enumerate(labels):  # Create one range box per label
+            # Two boxes for min/max plus label on the left
+            layout_2 = QtWidgets.QHBoxLayout()
+            layout_2.addWidget(QtWidgets.QLabel('  ' + label))
+            layout_2.addStretch()
+            label_min = QtWidgets.QLabel('min.')
+            min_box = QtWidgets.QSpinBox() if 'float' not in self._dtype else QtWidgets.QDoubleSpinBox()
+            label_max = QtWidgets.QLabel('max.')
+            max_box = QtWidgets.QSpinBox() if 'float' not in self._dtype else QtWidgets.QDoubleSpinBox()
+            min_box.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+            max_box.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+            layout_min = QtWidgets.QHBoxLayout()
+            layout_min.setAlignment(QtCore.Qt.AlignCenter)
+            layout_max = QtWidgets.QHBoxLayout()
+            layout_max.setAlignment(QtCore.Qt.AlignCenter)
+            layout_min.addWidget(label_min)
+            layout_min.addWidget(min_box)
+            layout_min.addStretch()
+            layout_max.addWidget(label_max)
+            layout_max.addWidget(max_box)
+            layout_max.addStretch()
+            layout_2.addLayout(layout_min)
+            layout_2.addLayout(layout_max)
+
+            if default_value[i] is not None:
+                min_box.setMinimum(0)
+                min_box.setMaximum(default_value[i][-1] - 1)
+                min_box.setValue(0)
+                max_box.setMinimum(min_box.minimum() + 1)
+                max_box.setMaximum(default_value[i][-1])
+                max_box.setValue(default_value[i][-1])
+
+            min_box.valueChanged.connect(lambda _: self._emit_value())
+            max_box.valueChanged.connect(lambda v, mb=min_box: mb.setMaximum(v - 1))
+            max_box.valueChanged.connect(lambda _: self._emit_value())
+
+            self.range_boxes[label] = [min_box, max_box]
+
+            layout.addLayout(layout_2)
+
+        if optional:
+            check_box.stateChanged.connect(lambda v: self._set_readonly(v == 0))
+            self._set_readonly()
+
+    def update_tooltip(self, val):
+        self.setToolTip('Current value: {}, (default value: {})'.format(val, self.default_value))
+
+    def load_value(self, value):
+
+        if value is not None and isinstance(value, collections.Iterable):
+            for i, label in enumerate(self.labels):
+                min_box, max_box = self.range_boxes[label]
+                min_box.setValue(value[i][0])
+                max_box.setValue(value[i][-1])
+
+            self.update_tooltip(value)
+
+    def _set_readonly(self, value=True):
+
+        palette = QtGui.QPalette()
+        if value:
+            palette.setColor(QtGui.QPalette.Base, QtCore.Qt.gray)
+            palette.setColor(QtGui.QPalette.Text, QtCore.Qt.darkGray)
+        else:
+            palette.setColor(QtGui.QPalette.Base, QtCore.Qt.white)
+            palette.setColor(QtGui.QPalette.Text, QtCore.Qt.black)
+
+        for key in self.range_boxes.keys():
+            min_box, max_box = self.range_boxes[key]
+            min_box.setReadOnly(value)
+            max_box.setReadOnly(value)
+            min_box.setPalette(palette)
+            max_box.setPalette(palette)
+
+        self._emit_value()
+
+    def _emit_value(self):
+        if not any([self.range_boxes[key][0].isReadOnly() for key in self.range_boxes.keys()]):
+            values = [[self.range_boxes[key][0].value(), self.range_boxes[key][-1].value()] for key in self.labels]
+        else:
+            values = [None] # if self.default_value is None else self.default_value
+        self.update_tooltip(values)
+        self.valueChanged.emit(values)
+
+
 class OptionMultiSlider(QtWidgets.QWidget):
     """
     Option sliders for several ints or floats. Shows the value as text and can increase range
