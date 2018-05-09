@@ -566,6 +566,11 @@ class TrackFittingTab(AnalysisWidget):
                         func=fit_tracks,
                         optional=True)
 
+        self.add_option(option='exclude_dut_hit',
+                        func=fit_tracks,
+                        default_value=True,
+                        fixed=False)
+
         # Connect options widgets depending on each other
         self.option_widgets['fit_duts'].selectionChanged.connect(lambda sel:
                                                                  self.option_widgets[
@@ -580,8 +585,6 @@ class TrackFittingTab(AnalysisWidget):
         # Set and fix options
         self.add_option(option='force_prealignment', func=fit_tracks,
                         default_value=options['skip_alignment'], fixed=True)
-        self.add_option(option='exclude_dut_hit', func=fit_tracks,
-                        default_value=False, fixed=True)
         self.add_option(option='use_correlated', func=fit_tracks,
                         default_value=False, fixed=True)
         self.add_option(option='min_track_distance', func=fit_tracks,
@@ -740,6 +743,16 @@ class EfficiencyTab(AnalysisWidget):
 
         self.add_option(option='use_duts',
                         default_value=list(range(setup['n_duts'])),  # Python3
+                        func=calculate_efficiency,
+                        optional=True)
+
+        self.add_option(option='col_range',
+                        default_value=[[0, setup['n_pixels'][i][0]] for i in range(setup['n_duts'])],
+                        func=calculate_efficiency,
+                        optional=True)
+
+        self.add_option(option='row_range',
+                        default_value=[[0, setup['n_pixels'][i][1]] for i in range(setup['n_duts'])],
                         func=calculate_efficiency,
                         optional=True)
 

@@ -178,6 +178,7 @@ class SettingsWindow(QtWidgets.QMainWindow):
 
 class ExceptionWindow(QtWidgets.QMainWindow):
 
+    resetTab = QtCore.pyqtSignal()
     exceptionRead = QtCore.pyqtSignal()
 
     def __init__(self, exception, trace_back, tab=None, cause=None, parent=None):
@@ -194,7 +195,8 @@ class ExceptionWindow(QtWidgets.QMainWindow):
 
         # Make main message and label
         msg = "The following exception occurred during %s: %s.\n" \
-              "Try changing the input parameters. %s tab will be reset!" % (cause, self.exc_type, tab)
+              "Try changing the input parameters. To reset %s tab press 'Reset tab'," \
+              " to keep the current selection press 'Ok' !" % (cause, self.exc_type, tab)
 
         self.label = QtWidgets.QLabel(msg)
         self.label.setWordWrap(True)
@@ -248,16 +250,22 @@ class ExceptionWindow(QtWidgets.QMainWindow):
         btn_safe.setToolTip('Safe traceback to file')
         btn_safe.clicked.connect(self.safe_traceback)
 
+        # Reset button
+        btn_reset = QtWidgets.QPushButton('Reset tab')
+        btn_reset.setToolTip('Reset current analysis tab')
+        btn_reset.clicked.connect(self.resetTab.emit)
+        btn_reset.clicked.connect(self.close)
+
         # Ok button
         btn_ok = QtWidgets.QPushButton('Ok')
-        btn_ok.setToolTip('Reset current tab')
+        btn_ok.setToolTip('Restore current analysis tab (No reset).')
         btn_ok.clicked.connect(self.close)
 
         # Add buttons to layout
         layout_buttons.addWidget(self.btn_switch)
-        layout_buttons.addStretch(1)
         layout_buttons.addWidget(btn_safe)
-        layout_buttons.addSpacing(h_space)
+        layout_buttons.addStretch(1)
+        layout_buttons.addWidget(btn_reset)
         layout_buttons.addWidget(btn_ok)
 
         # Dock in which text browser is placed

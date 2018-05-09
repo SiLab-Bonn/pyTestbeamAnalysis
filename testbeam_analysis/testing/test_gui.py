@@ -11,7 +11,7 @@ from testbeam_analysis.gui.tab_widgets.files_tab import FilesTab
 from testbeam_analysis.gui.tab_widgets.setup_tab import SetupTab
 from testbeam_analysis.gui.tab_widgets import analysis_tabs
 from testbeam_analysis.gui.gui_widgets.analysis_widgets import AnalysisWidget, ParallelAnalysisWidget
-from testbeam_analysis.gui.gui_widgets.option_widgets import OptionSlider, OptionText, OptionBool
+from testbeam_analysis.gui.gui_widgets.option_widgets import *
 from testbeam_analysis.gui.gui_widgets.sub_windows import IPrealignmentWindow, ExceptionWindow, SettingsWindow
 
 
@@ -130,6 +130,9 @@ class TestGui(unittest.TestCase):
 
         self.assertListEqual(sorted(properties.values()), sorted([str(r) for r in self.dut_types['FE-I4'].values()]))
 
+        # Load test setup again
+        self.setup_tab.load_setup(setup=self.test_setup)
+
         # Add scatter plane and check if tab is created
         self.setup_tab._add_dut('Scatter_plane', scatter_plane=True)
         dut_names = self.test_setup['dut_names'][:]
@@ -141,9 +144,18 @@ class TestGui(unittest.TestCase):
         """Test analysis widget"""
 
         # Make arbitrary function
-        def some_func(a=1, b='String', c=3.14159265, d=True):
+        def some_func(a=1, b='String', c=3.14159265, d=True, col_range=None, some_iterable=None):
+            ''' Some docstring of some func
+
+                Parameters
+                ----------
+                col_range : iterable
+                    Iterable of ranges.
+                some_iterable : iterable
+                    Its an iterable
+            '''
             if d:
-                return b*(a * int(c))
+                return b*(a * int(c)), col_range, some_iterable
 
         # Test default settings
         self.assertEqual(self.analysis_widget.isFinished, False)
@@ -152,18 +164,40 @@ class TestGui(unittest.TestCase):
         # Add function and check
         self.analysis_widget.add_function(some_func)
 
-        self.assertListEqual(list(self.analysis_widget.calls.values()), [{'a': 1, 'b': 'String', 'c': 3.14159265, 'd': True}])
+        # Add option and check
+        self.analysis_widget.add_option(option='col_range', func=some_func,
+                                        default_value=[[0, 80]] * self.test_setup['n_duts'],
+                                        optional=False)
+
+        self.assertListEqual(list(self.analysis_widget.calls.values()), [{'a': 1, 'b': 'String', 'c': 3.14159265, 'd': True,
+                                                                          'col_range':[[0, 80]] * self.test_setup['n_duts'],
+                                                                          'some_iterable': None}])
 
         # Change existing option and check
         self.analysis_widget.add_option(option='a', func=some_func, default_value=2)
 
-        self.assertListEqual(list(self.analysis_widget.calls.values()), [{'a': 2, 'b': 'String', 'c': 3.14159265, 'd': True}])
+        # Check
+        self.assertListEqual(list(self.analysis_widget.calls.values()), [{'a': 2, 'b': 'String', 'c': 3.14159265, 'd': True,
+                                                                          'col_range': [[0, 80]] * self.test_setup['n_duts'],
+                                                                          'some_iterable': None}])
+
+        # Load some values in OptionMultiRangeBox
+        self.analysis_widget.option_widgets['col_range'].load_value([[0, 10]] * self.test_setup['n_duts'])
+
+        # Get these values again
+        values = [[self.analysis_widget.option_widgets['col_range'].range_boxes[key][0].value(),
+                   self.analysis_widget.option_widgets['col_range'].range_boxes[key][-1].value()] for key in self.test_setup['dut_names']]
+
+        # Check values again
+        self.assertListEqual(values, [[0, 10]] * self.test_setup['n_duts'])
 
         # Check for if correct widgets were created
         self.assertEqual(isinstance(self.analysis_widget.option_widgets['a'], OptionSlider), True)
         self.assertEqual(isinstance(self.analysis_widget.option_widgets['b'], OptionText), True)
         self.assertEqual(isinstance(self.analysis_widget.option_widgets['c'], OptionSlider), True)
         self.assertEqual(isinstance(self.analysis_widget.option_widgets['d'], OptionBool), True)
+        self.assertEqual(isinstance(self.analysis_widget.option_widgets['col_range'], OptionMultiRangeBox), True)
+        self.assertEqual(isinstance(self.analysis_widget.option_widgets['some_iterable'], OptionMultiSlider), True)
 
 
 if __name__ == '__main__':

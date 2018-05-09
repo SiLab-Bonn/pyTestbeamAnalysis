@@ -385,12 +385,11 @@ class FilesTable(QtWidgets.QTableWidget):
                         else:
                             missing.append(req)
                     if len(missing) != 0:
-                        self.incompatible_data[i] = 'Data does not contain field(s):\n' + ', '.join(missing)
+                        self.incompatible_data[i] = 'Data does not contain required field(s):\n' + ', '.join(missing)
                     if f.root.Hits.shape[0] == 0:
                         self.incompatible_data[i] = 'Hit data is empty!'
-
                 except tb.exceptions.NoSuchNodeError:
-                    self.incompatible_data[i] = 'No Hits node! Found nodes:\n' + ', '.join([node.name for node in f.root])
+                    self.incompatible_data[i] = 'No node named Hits! Found nodes:\n' + ', '.join([node._v_name for node in f.root])
 
         font = QtGui.QFont()
         font.setBold(True)

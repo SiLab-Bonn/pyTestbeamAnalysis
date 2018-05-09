@@ -3,6 +3,7 @@ import logging
 import platform
 import yaml
 import os
+import time
 from collections import OrderedDict, defaultdict
 
 from email import message_from_string
@@ -459,6 +460,27 @@ class AnalysisWindow(QtWidgets.QMainWindow):
                         continue
                 except (AttributeError, RuntimeError):
                     pass
+
+                # Close analysis thread on exception
+                if exception:
+
+                    # If ParallelAnalysisWidget, several exceptions (for each sub tab) will be raised but only one thread to quit
+                    try:
+                        self.tw[tab].analysis_thread.finished.disconnect()  # Disconnect from analysisFinished signal
+                        self.tw[tab].analysis_thread.finished.connect(self.tw[tab].analysis_thread.deleteLater)  # Delete
+                        self.tw[tab].analysis_thread.quit()  # Quit thread
+
+                        time_steps = 0
+                        while self.tw[tab].analysis_thread.isRunning() and time_steps < 1000:  # Wait max. 1 second
+                            time.sleep(0.001)
+                            time_steps += 1
+                        if time_steps >= 1000:
+                            logging.warning("Analysis thread of %s was not closed properly!" % tab)
+                        else:
+                            logging.info("Analysis thread of %s closed within %.3f seconds." % (tab, time_steps * 0.001))
+
+                    except (RuntimeError, TypeError):  # Disconnecting failed for some reason
+                        pass
 
                 # Replace tabs in self.tw with updated tabs
                 self.tw[tab] = tmp_tw[tab]
@@ -1124,14 +1146,53 @@ class AnalysisWindow(QtWidgets.QMainWindow):
 
         else:
 
+            def restore_tab(tab):
+                """Restores tab to its initial config which caused the exception"""
+
+                # Get config
+                if tab in self.tab_order[2:4]:
+                    sub_calls = {}
+                    for dut in self.tw[tab].tw.keys():
+                        sub_calls[dut] = self.tw[tab].tw[dut].calls
+                    config = sub_calls
+                else:
+                    config = self.tw[tab].calls
+
+                # Ubdate tab
+                self.update_tabs(tabs=tab, exception=True)
+
+                # Restore states of Parallel/AnalysisWidget
+                if tab in self.tab_order[2:4]:  # ParallelAnalysisWidget
+                    for dut in config.keys():
+                        for func in config[dut].keys():
+                            for opt in config[dut][func].keys():
+                                try:
+                                    self.tw[tab].tw[dut].option_widgets[opt].load_value(config[dut][func][opt])
+                                    # Set argument to be able to load, continue and safe a session without losing info
+                                    self.tw[tab].tw[dut]._set_argument(func, opt,config[dut][func][opt])
+                                except KeyError:  # Fixed option has no option widget; KeyError
+                                    pass
+                else:  # AnalysisWidget
+                    for func in config.keys():
+                        for opt in config[func].keys():
+                            try:
+                                self.tw[tab].option_widgets[opt].load_value(config[func][opt])
+                                # Set argument to be able to load, continue and safe a session without losing info
+                                self.tw[tab]._set_argument(func, opt, config[func][opt])
+                            except KeyError:  # Fixed option has no option widget; KeyError
+                                pass
+
             # Set index to tab where exception occurred
             self.tabs.setCurrentIndex(self.tab_order.index(tab))
 
             # Make instance of exception window
             self.exception_window = ExceptionWindow(exception=exception, trace_back=trace_back,
                                                     tab=tab, cause=cause, parent=self)
+            # Make connections
+            self.exception_window.resetTab.connect(lambda: self.update_tabs(tabs=tab, exception=True))
+            self.exception_window.exceptionRead.connect(lambda: restore_tab(tab=tab))
+            # Show window
             self.exception_window.show()
-            self.exception_window.exceptionRead.connect(lambda: self.update_tabs(tabs=tab, exception=True))
 
             # Remove progressbar of consecutive analysis if there is one
             try:

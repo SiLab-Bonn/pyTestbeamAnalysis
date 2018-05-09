@@ -335,9 +335,15 @@ class AnalysisWidget(QtWidgets.QWidget):
         if ('scalar' in dtype and ('tuple' in dtype or 'iterable' in dtype) or
                         'int' in dtype and ('tuple' in dtype or 'iterable' in dtype) or
                 ('iterable' in dtype and 'iterable of iterable' not in dtype and 'duts' not in name)) and 'quality' not in name:
-            widget = option_widgets.OptionMultiSlider(name=name, labels=self.setup['dut_names'],
-                                                      default_value=default_value, optional=optional,
-                                                      dtype=dtype, tooltip=tooltip, parent=self)
+            if 'range' not in name:
+                widget = option_widgets.OptionMultiSlider(name=name, labels=self.setup['dut_names'],
+                                                          default_value=default_value, optional=optional,
+                                                          dtype=dtype, tooltip=tooltip, parent=self)
+            else:
+                widget = option_widgets.OptionMultiRangeBox(name=name, labels=self.setup['dut_names'],
+                                                            default_value=default_value, optional=optional,
+                                                            dtype=dtype, tooltip=tooltip, parent=self)
+
         elif ('iterable of iterable' in dtype or 'iterable' in dtype) and ('duts' in name or 'quality' in name):
 
             # Init labels
