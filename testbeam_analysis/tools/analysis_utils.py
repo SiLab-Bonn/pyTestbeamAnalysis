@@ -931,6 +931,21 @@ def fit_residuals_vs_position(hist, xedges, yedges, xlabel="", ylabel="", title=
     return fit, cov
 
 
+def fit_in_pixel_hit_hist(hist, edges):
+    try:
+        fit, _ = curve_fit(testbeam_analysis.tools.analysis_utils.gauss_offset,
+                           edges, hist,
+                           p0=(np.max(hist) - np.min(hist),
+                               np.median(edges),
+                               np.std(np.repeat((edges).astype(np.int64), (hist).astype(np.int64))),
+                               np.min(hist)),
+                           sigma=np.sqrt(hist))
+    except RuntimeError:
+        fit = [np.NaN, np.NaN, np.NaN, np.NaN]
+
+    return fit
+
+
 def hough_transform(img, theta_res=1.0, rho_res=1.0, return_edges=False):
     thetas = np.linspace(-90.0, 0.0, np.ceil(90.0 / theta_res) + 1)
     thetas = np.concatenate((thetas, -thetas[len(thetas) - 2::-1]))
