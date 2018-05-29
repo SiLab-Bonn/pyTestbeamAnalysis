@@ -44,7 +44,7 @@ in the *tesbeam analysis* folder, the GUI can be opened from the shell via
 File selection
 **************
 
-The file selection tab provides a table in order to display and handle the input files of all *devices under test* (:DUT:).
+The file selection tab provides a table in order to display and handle the input files of all *devices under test* (*DUT*).
 The input files can be selected via a button click or *dragged & dropped* onto the table area on the left-hand side of the file selection tab.
 After file selection, the path to each input file, the DUT name for subsequent analysis as well as the file status (each input file is checked for required information)
 are displayed in the table. The table entries can be moved or deleted by usinf the buttons in the *Navigation* column.
@@ -68,12 +68,13 @@ Example of the file selection for FE-I4 telescope data, consisting of 4 FE-I4 pi
 Setup 
 *****
 
-The setup tab provides a plotting area on the left-hand side of the tab in order to plot the schematic test setup as well as a tab to input setup information for each DUT on the right-hand side.
+The setup tab provides a plotting area on the left-hand side of the tab in order to plot the schematic test beam setup as well as a tab to input setup information for each DUT on the right-hand side.
 The telescope setup is plotted from the top- (upper) and side-view (lower) with rotations shown multiplied by a factor of 10 and correct relative distances in between DUTs.
 Information for each DUT can be input manually or selected from a list with predefined DUT-types. This list can be extended by the current, complete information via entering a *new* name into
 the respective field and pressing the respective button. DUT-types can be overwritten or removed from the list by typing `name` or `:name` respectively, into the respective field and pressing
-the button. Dead material (*scatter planes*) in the setup can be added by clicking the button in the upper-right corner.
+the button. Dead material (*scatter planes*) in the setup can be added by clicking the button in the upper-right corner. 
 To proceed the analyis (e.g. press the 'Ok' button), all required information regarding the setup of each DUT must be filled in.
+A complete setup can be saved from and loaded into the setup tab by using the respective buttons on the bottom right-hand side. 
 An example of the setup tab is shown below.
 
 .. image:: _static/gui/setup.png
@@ -89,14 +90,11 @@ The plotting area contains the result plots of the analysis step. Result plots c
 
 The option input area contains three different types of options:
 
-- :needed:
-   Options that must be set. The default value of the option is pre-set.
+- :needed: Options that must be set. The default value of the option is pre-set.
 
-- :optional:
-   Options that can be set but are not required. The default value is `None`. To effectively set the option, the corresponding `check box` has to be checked.
+- :optional: Options that can be set but are not required. The default value is `None`. To effectively set the option, the corresponding `check box` has to be checked.
 
-- :fixed:
-   Options that must not be changed. They are displayed as text at the bottom of the option area.
+- :fixed: Options that must not be changed. They are displayed as text at the bottom of the option area.
 
 All options are documented and their widgets created via `introspection <http://book.pythontips.com/en/latest/object_introspection.html#inspect-module>`_ of the corresponding function.
 The documentation is shown as a *tooltip* when hovering over the respective option name. Furthermore, the current value of the option is shown as a *tooltip*
@@ -132,6 +130,21 @@ Re-running a tab requires to reset all subsequent analysis tabs. A complete, con
 .. image:: _static/gui/noisy_logger.png
 
 Logging console on Noisy Pixel tab
+
+Exception handling
+******************
+
+Exceptions which are thrown by an analysis or plotting function are handled via a separate window. The window shows the type of exceptions and allows the user to switch between the exception message
+and the full traceback which also can be saved. Upon an analysis exception, the user may decide whether to reset the current tabs input to default or keep the input configuration in order to only change a single/few 
+input options by clicking the respective buttons. An example of the exception window can be seen below.
+
+.. image: _static/gui/exception_1.png
+   :width: 45%
+
+.. image: _static/gui/exception_2.png
+   :width: 45%
+
+Exception window with error message (left) and full traceback (right).
 
 Saving/Loading sessions
 ***********************

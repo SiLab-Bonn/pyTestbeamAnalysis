@@ -94,6 +94,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#file-selection">File selection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#setup">Setup</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#analysis">Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#exception-handling">Exception handling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#saving-loading-sessions">Saving/Loading sessions</a></li>
 </ul>
 </li>
@@ -200,7 +201,7 @@ The current analysis step generally depends on the preceding, thus the analysis 
 </div>
 <div class="section" id="file-selection">
 <h2>File selection<a class="headerlink" href="#file-selection" title="Permalink to this headline">¶</a></h2>
-<p>The file selection tab provides a table in order to display and handle the input files of all <em>devices under test</em> (:DUT:).
+<p>The file selection tab provides a table in order to display and handle the input files of all <em>devices under test</em> (<em>DUT</em>).
 The input files can be selected via a button click or <em>dragged &amp; dropped</em> onto the table area on the left-hand side of the file selection tab.
 After file selection, the path to each input file, the DUT name for subsequent analysis as well as the file status (each input file is checked for required information)
 are displayed in the table. The table entries can be moved or deleted by usinf the buttons in the <em>Navigation</em> column.
@@ -220,12 +221,13 @@ An example of the files selection tab is shown below.</p>
 </div>
 <div class="section" id="setup">
 <h2>Setup<a class="headerlink" href="#setup" title="Permalink to this headline">¶</a></h2>
-<p>The setup tab provides a plotting area on the left-hand side of the tab in order to plot the schematic test setup as well as a tab to input setup information for each DUT on the right-hand side.
+<p>The setup tab provides a plotting area on the left-hand side of the tab in order to plot the schematic test beam setup as well as a tab to input setup information for each DUT on the right-hand side.
 The telescope setup is plotted from the top- (upper) and side-view (lower) with rotations shown multiplied by a factor of 10 and correct relative distances in between DUTs.
 Information for each DUT can be input manually or selected from a list with predefined DUT-types. This list can be extended by the current, complete information via entering a <em>new</em> name into
 the respective field and pressing the respective button. DUT-types can be overwritten or removed from the list by typing <cite>name</cite> or <cite>:name</cite> respectively, into the respective field and pressing
 the button. Dead material (<em>scatter planes</em>) in the setup can be added by clicking the button in the upper-right corner.
 To proceed the analyis (e.g. press the &#8216;Ok&#8217; button), all required information regarding the setup of each DUT must be filled in.
+A complete setup can be saved from and loaded into the setup tab by using the respective buttons on the bottom right-hand side.
 An example of the setup tab is shown below.</p>
 <img alt="_images/setup.png" src="_images/setup.png" />
 <p>Example of setup tab for FE-I4 telescope data, consisting of 4 FE-I4 pixel detectors and a scatter plane</p>
@@ -294,6 +296,13 @@ After completion of the analysis, the tab is marked as &#8220;completed&#8221; v
 Re-running a tab requires to reset all subsequent analysis tabs. A complete, consecutive analysis with default values can be run by <cite>CTRL+R</cite> or in the <cite>Run</cite> menu.</p>
 <img alt="_images/noisy_logger.png" src="_images/noisy_logger.png" />
 <p>Logging console on Noisy Pixel tab</p>
+</div>
+<div class="section" id="exception-handling">
+<h2>Exception handling<a class="headerlink" href="#exception-handling" title="Permalink to this headline">¶</a></h2>
+<p>Exceptions which are thrown by an analysis or plotting function are handled via a separate window. The window shows the type of exceptions and allows the user to switch between the exception message
+and the full traceback which also can be saved. Upon an analysis exception, the user may decide whether to reset the current tabs input to default or keep the input configuration in order to only change a single/few
+input options by clicking the respective buttons. An example of the exception window can be seen below.</p>
+<p>Exception window with error message (left) and full traceback (right).</p>
 </div>
 <div class="section" id="saving-loading-sessions">
 <h2>Saving/Loading sessions<a class="headerlink" href="#saving-loading-sessions" title="Permalink to this headline">¶</a></h2>
