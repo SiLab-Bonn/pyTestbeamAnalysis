@@ -138,10 +138,10 @@ Exceptions which are thrown by an analysis or plotting function are handled via 
 and the full traceback which also can be saved. Upon an analysis exception, the user may decide whether to reset the current tabs input to default or keep the input configuration in order to only change a single/few 
 input options by clicking the respective buttons. An example of the exception window can be seen below.
 
-.. image: _static/gui/exception_1.png
+.. image:: _static/gui/exception_1.png
    :width: 45%
 
-.. image: _static/gui/exception_2.png
+.. image:: _static/gui/exception_2.png
    :width: 45%
 
 Exception window with error message (left) and full traceback (right).
