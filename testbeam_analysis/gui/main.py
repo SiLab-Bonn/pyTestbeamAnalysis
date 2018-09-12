@@ -755,7 +755,10 @@ class AnalysisWindow(QtWidgets.QMainWindow):
             self.console_dock.setVisible(True)
             return
         else:
-            session['options']['output_path'] = locations.values()[0][0]
+            # Overwrite output path if locations is not empty; this only happens for saved sessions with no analysis
+            # At this point locations will only have identical paths in it, so just take 0th
+            if locations.values():
+                session['options']['output_path'] = locations.values()[0][0]
 
         # Start loading tabs
         # Reset analysis window and set the options and setup from sessions file
