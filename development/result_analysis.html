@@ -26,8 +26,7 @@
 
   
 
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
   <link rel="stylesheet" href="_static/banner.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
@@ -180,25 +179,25 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>input_tracks_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/string.html#module-string" title="(in Python v3.6)"><em>string</em></a>) &#8211; Filename of the input tracks file.</li>
-<li><strong>input_alignment_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/string.html#module-string" title="(in Python v3.6)"><em>string</em></a>) &#8211; Filename of the input aligment file.</li>
+<li><strong>input_tracks_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/string.html#module-string" title="(in Python v3.7)"><em>string</em></a>) &#8211; Filename of the input tracks file.</li>
+<li><strong>input_alignment_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/string.html#module-string" title="(in Python v3.7)"><em>string</em></a>) &#8211; Filename of the input aligment file.</li>
 <li><strong>n_pixels</strong> (<em>iterable of tuples</em>) &#8211; One tuple per DUT describing the number of pixels in column, row direction
 e.g. for 2 DUTs: n_pixels = [(80, 336), (80, 336)]</li>
 <li><strong>pixel_size</strong> (<em>iterable of tuples</em>) &#8211; One tuple per DUT describing the pixel dimension in um in column, row direction
 e.g. for 2 DUTs: pixel_size = [(250, 50), (250, 50)]</li>
-<li><strong>output_residuals_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/string.html#module-string" title="(in Python v3.6)"><em>string</em></a>) &#8211; Filename of the output residuals file. If None, the filename will be derived from the input hits file.</li>
+<li><strong>output_residuals_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/string.html#module-string" title="(in Python v3.7)"><em>string</em></a>) &#8211; Filename of the output residuals file. If None, the filename will be derived from the input hits file.</li>
 <li><strong>dut_names</strong> (<em>iterable</em>) &#8211; Name of the DUTs. If None, DUT numbers will be used.</li>
 <li><strong>use_duts</strong> (<em>iterable</em>) &#8211; The duts to calculate residuals for. If None all duts in the input_tracks_file are used</li>
 <li><strong>max_chi2</strong> (<em>uint</em><em>, </em><em>iterable</em>) &#8211; Use only not heavily scattered tracks to increase track pointing resolution (cut on chi2).
 Cut can be a number and is used then for all DUTS or a list with a chi 2 cut for each DUT.
 If None, no cut is applied.</li>
-<li><strong>nbins_per_pixel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) &#8211; Number of bins per pixel along the residual axis. Number is a positive integer or None to automatically set the binning.</li>
-<li><strong>npixels_per_bin</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) &#8211; Number of pixels per bin along the position axis. Number is a positive integer or None to automatically set the binning.</li>
-<li><strong>force_prealignment</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) &#8211; Take the prealignment, although if a coarse alignment is availale.</li>
+<li><strong>nbins_per_pixel</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) &#8211; Number of bins per pixel along the residual axis. Number is a positive integer or None to automatically set the binning.</li>
+<li><strong>npixels_per_bin</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) &#8211; Number of pixels per bin along the position axis. Number is a positive integer or None to automatically set the binning.</li>
+<li><strong>force_prealignment</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) &#8211; Take the prealignment, although if a coarse alignment is availale.</li>
 <li><strong>cluster_size_selection</strong> (<em>uint</em>) &#8211; Select which cluster sizes should be included for residual calculation. If None all cluster sizes are taken.</li>
-<li><strong>plot</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) &#8211; If True, create additional output plots.</li>
-<li><strong>gui</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) &#8211; If True, use GUI for plotting.</li>
-<li><strong>chunk_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) &#8211; Chunk size of the data when reading from file.</li>
+<li><strong>plot</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) &#8211; If True, create additional output plots.</li>
+<li><strong>gui</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) &#8211; If True, use GUI for plotting.</li>
+<li><strong>chunk_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) &#8211; Chunk size of the data when reading from file.</li>
 </ul>
 </td>
 </tr>
@@ -215,26 +214,26 @@ If None, no cut is applied.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>input_tracks_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/string.html#module-string" title="(in Python v3.6)"><em>string</em></a>) &#8211; Filename of the input tracks file.</li>
-<li><strong>input_alignment_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/string.html#module-string" title="(in Python v3.6)"><em>string</em></a>) &#8211; Filename of the input alignment file.</li>
+<li><strong>input_tracks_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/string.html#module-string" title="(in Python v3.7)"><em>string</em></a>) &#8211; Filename of the input tracks file.</li>
+<li><strong>input_alignment_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/string.html#module-string" title="(in Python v3.7)"><em>string</em></a>) &#8211; Filename of the input alignment file.</li>
 <li><strong>bin_size</strong> (<em>iterable</em>) &#8211; Sizes of bins (i.e. (virtual) pixel size). Give one tuple (x, y) for every plane or list of tuples for different planes.</li>
 <li><strong>sensor_size</strong> (<em>Tuple</em><em> or </em><em>list of tuples</em>) &#8211; Describes the sensor size for each DUT. If one tuple is given it is (size x, size y)
 If several tuples are given it is [(DUT0 size x, DUT0 size y), (DUT1 size x, DUT1 size y), ...]</li>
-<li><strong>output_efficiency_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/string.html#module-string" title="(in Python v3.6)"><em>string</em></a>) &#8211; Filename of the output efficiency file. If None, the filename will be derived from the input hits file.</li>
-<li><strong>minimum_track_density</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) &#8211; Minimum track density required to consider bin for efficiency calculation.</li>
+<li><strong>output_efficiency_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/string.html#module-string" title="(in Python v3.7)"><em>string</em></a>) &#8211; Filename of the output efficiency file. If None, the filename will be derived from the input hits file.</li>
+<li><strong>minimum_track_density</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) &#8211; Minimum track density required to consider bin for efficiency calculation.</li>
 <li><strong>use_duts</strong> (<em>iterable</em>) &#8211; Calculate the efficiency for selected DUTs. If None, all duts are selected.</li>
 <li><strong>max_chi2</strong> (<em>uint</em>) &#8211; Only use tracks with a chi2 &lt;= max_chi2.</li>
-<li><strong>force_prealignment</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) &#8211; Take the prealignment, although if a coarse alignment is availale.</li>
-<li><strong>cut_distance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) &#8211; Use only distances (between DUT hit and track hit) smaller than cut_distance.</li>
-<li><strong>max_distance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) &#8211; Defines binnig of distance values.</li>
+<li><strong>force_prealignment</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) &#8211; Take the prealignment, although if a coarse alignment is availale.</li>
+<li><strong>cut_distance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) &#8211; Use only distances (between DUT hit and track hit) smaller than cut_distance.</li>
+<li><strong>max_distance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) &#8211; Defines binnig of distance values.</li>
 <li><strong>col_range</strong> (<em>iterable</em>) &#8211; Column value to calculate efficiency for (to neglect noisy edge pixels for efficiency calculation).</li>
 <li><strong>row_range</strong> (<em>iterable</em>) &#8211; Row value to calculate efficiency for (to neglect noisy edge pixels for efficiency calculation).</li>
-<li><strong>plot</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) &#8211; If True, create additional output plots.</li>
-<li><strong>chunk_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.6)"><em>int</em></a>) &#8211; Chunk size of the data when reading from file.</li>
+<li><strong>plot</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) &#8211; If True, create additional output plots.</li>
+<li><strong>chunk_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><em>int</em></a>) &#8211; Chunk size of the data when reading from file.</li>
 <li><strong>pixel_size</strong> (<em>iterable</em>) &#8211; tuple or list of col/row pixel dimension</li>
 <li><strong>n_pixels</strong> (<em>iterable</em>) &#8211; tuple or list of amount of pixel in col/row dimension</li>
-<li><strong>show_inefficient_events</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) &#8211; Whether to log inefficient events</li>
-<li><strong>gui</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.6)"><em>bool</em></a>) &#8211; If True, use GUI for plotting.</li>
+<li><strong>show_inefficient_events</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) &#8211; Whether to log inefficient events</li>
+<li><strong>gui</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><em>bool</em></a>) &#8211; If True, use GUI for plotting.</li>
 </ul>
 </td>
 </tr>
@@ -313,10 +312,7 @@ If several tuples are given it is [(DUT0 size x, DUT0 size y), (DUT1 size x, DUT
 
   
 
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="_static/js/theme.js"></script>
 
   <script type="text/javascript">
       jQuery(function () {
