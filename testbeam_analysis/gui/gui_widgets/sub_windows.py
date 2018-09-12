@@ -36,6 +36,7 @@ class SettingsWindow(QtWidgets.QMainWindow):
                               'pixel_size': None,
                               'z_positions': None,
                               'rotations': None,
+                              'translations': None,
                               'material_budget': None,
                               'scatter_planes': None}
 

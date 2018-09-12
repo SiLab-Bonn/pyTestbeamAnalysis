@@ -414,7 +414,7 @@ class AlignmentTab(AnalysisWidget):
                         optional=True)
 
         self.add_option(option='initial_translation',
-                        default_value=False,
+                        default_value=setup['translations'],
                         func=alignment,
                         fixed=True)
 

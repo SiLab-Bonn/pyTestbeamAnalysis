@@ -25,7 +25,7 @@ class SetupTab(QtWidgets.QWidget):
 
         # Make tuple of properties of each dut
         self._dut_props = ('z_positions', 'rot_alpha', 'rot_beta', 'rot_gamma', 'pitch_col',
-                           'pitch_row', 'n_cols', 'n_rows', 'material_budget')
+                           'pitch_row', 'n_cols', 'n_rows', 'material_budget', 'trans_x', 'trans_y')
         self._scatter_props = ('z_positions', 'rot_alpha', 'rot_beta', 'rot_gamma', 'material_budget')
 
         # Make dict for properties of each dut
@@ -245,14 +245,26 @@ class SetupTab(QtWidgets.QWidget):
         label_rot = QtWidgets.QLabel('Rotation / mRad:')
         label_rot.setFixedWidth(label_width)
         edit_alpha = QtWidgets.QLineEdit()
-        edit_alpha.setToolTip('Rotation around x-axis')
+        edit_alpha.setToolTip('Initial rotation around x-axis')
         edit_alpha.setPlaceholderText(u'\u03B1' + ' = 0')
         edit_beta = QtWidgets.QLineEdit()
-        edit_beta.setToolTip('Rotation around y-axis')
+        edit_beta.setToolTip('Initial rotation around y-axis')
         edit_beta.setPlaceholderText(u'\u03B2' + ' = 0')
         edit_gamma = QtWidgets.QLineEdit()
         edit_gamma.setToolTip('Rotation around z-axis. Not shown in setup')
         edit_gamma.setPlaceholderText(u'\u03B3' + ' = 0')
+
+        # translations related
+        label_trans = QtWidgets.QLabel('Translation / ' + u'\u03BC' + 'm:')
+        label_trans.setFixedWidth(label_width)
+        edit_x_trans = QtWidgets.QLineEdit()
+        edit_x_trans.setToolTip('Initial translation along x-axis')
+        edit_x_trans.setPlaceholderText('x = 0 ' + u'\u03BC' + 'm')
+        edit_y_trans = QtWidgets.QLineEdit()
+        edit_y_trans.setToolTip('Initial translation along y-axis')
+        edit_y_trans.setPlaceholderText('y = 0 ' + u'\u03BC' + 'm')
+
+        # material budget related
         label_budget = QtWidgets.QLabel('Material budget / ' + u'\u03BC' + 'm :')
         label_budget.setToolTip(
             'Material budget of sensor or compound. Defined as thickness divided by radiation length ' + u'X\u2080')
@@ -270,6 +282,10 @@ class SetupTab(QtWidgets.QWidget):
         layout_setup.addWidget(edit_alpha, 1, 2, 1, 1)
         layout_setup.addWidget(edit_beta, 1, 3, 1, 1)
         layout_setup.addWidget(edit_gamma, 1, 4, 1, 1)
+        layout_setup.addWidget(label_trans, 2, 0, 1, 1)
+        layout_setup.addItem(QtWidgets.QSpacerItem(h_space, v_space), 2, 1, 1, 1)
+        layout_setup.addWidget(edit_x_trans, 2, 2, 1, 1)
+        layout_setup.addWidget(edit_y_trans, 2, 3, 1, 1)
 
         # Is DUT
         if not scatter_plane:
@@ -349,7 +365,8 @@ class SetupTab(QtWidgets.QWidget):
 
             # Make tuple of all QLineEdit widgets
             edit_widgets = (edit_z, edit_alpha, edit_beta, edit_gamma, edit_pitch_col,
-                            edit_pitch_row, edit_pixels_col, edit_pixels_row, edit_budget)
+                            edit_pitch_row, edit_pixels_col, edit_pixels_row, edit_budget,
+                            edit_x_trans, edit_y_trans)
 
             # Add these QLineEdit widgets to dict with respective dut as key to access the user input and connect
             self._dut_widgets[dut_name] = {}
@@ -516,12 +533,13 @@ class SetupTab(QtWidgets.QWidget):
         if custom is None:
 
             # Clear and initialize dut data dict before reading
-            self.dut_data = {'rotations': [], 'n_pixels': [], 'pixel_size': []}
+            self.dut_data = {'rotations': [], 'n_pixels': [], 'pixel_size': [], 'translations': []}
 
             # make tmp dict for pixel_size and n_pixel to add tuple of (n_cols, n_rows) etc. to output data
             tmp_rotation = {}
             tmp_n_pixel = {}
             tmp_pixel_size = {}
+            tmp_translation = {}
 
             for dut in self.data['dut_names']:
                 for prop in self._dut_props:
@@ -534,16 +552,20 @@ class SetupTab(QtWidgets.QWidget):
                         tmp_n_pixel[prop] = int(self._dut_widgets[dut][prop].text())
                     elif prop in ['pitch_col', 'pitch_row']:
                         tmp_pixel_size[prop] = float(self._dut_widgets[dut][prop].text())
-                    elif prop in ['rot_alpha', 'rot_beta', 'rot_gamma', 'material_budget']:
-                        # Default value for rotations and material budget is 0
+                    elif prop in ['rot_alpha', 'rot_beta', 'rot_gamma', 'material_budget', 'trans_x', 'trans_y']:
+                        # Default value for rotations, translations and material budget is 0
                         if not self._dut_widgets[dut][prop].text():
                             if prop == 'material_budget':
                                 self.dut_data[prop].append(0.0)
+                            elif prop in ['trans_x', 'trans_y']:
+                                tmp_translation[prop] = 0.0
                             else:
                                 tmp_rotation[prop] = 0.0
                         else:
                             if prop == 'material_budget':
                                 self.dut_data[prop].append(float(self._dut_widgets[dut][prop].text()))
+                            elif prop in ['trans_x', 'trans_y']:
+                                tmp_translation[prop] = float(self._dut_widgets[dut][prop].text())
                             else:
                                 tmp_rotation[prop] = float(self._dut_widgets[dut][prop].text())
                     else:
@@ -553,6 +575,7 @@ class SetupTab(QtWidgets.QWidget):
                                                   tmp_rotation['rot_gamma']))
                 self.dut_data['n_pixels'].append((tmp_n_pixel['n_cols'], tmp_n_pixel['n_rows']))
                 self.dut_data['pixel_size'].append((tmp_pixel_size['pitch_col'], tmp_pixel_size['pitch_row']))
+                self.dut_data['translations'].append((tmp_translation['trans_x'], tmp_translation['trans_y']))
 
             # TODO: Kind of hardcoded. Repeating same code for DUTs and scatter plane, should be function
             # Clear and initialize scatter data dict with correct keys necessary for track analysis before reading
@@ -586,7 +609,7 @@ class SetupTab(QtWidgets.QWidget):
 
             # Add property lists to output data dict
             for key in self.dut_data.keys():
-                if key not in ['n_cols', 'n_rows', 'pitch_col', 'pitch_row', 'rot_alpha', 'rot_beta', 'rot_gamma']:
+                if key not in ['n_cols', 'n_rows', 'pitch_col', 'pitch_row', 'rot_alpha', 'rot_beta', 'rot_gamma', 'trans_x', 'trans_y']:
                     self.data[key] = self.dut_data[key]
 
             # Add dictionaries of scatter planes
@@ -639,7 +662,7 @@ class SetupTab(QtWidgets.QWidget):
                 for prop in self._dut_props:
 
                     # Exclude reading of non-specific dut properties
-                    if prop not in ['z_positions', 'rot_alpha', 'rot_beta', 'rot_gamma']:
+                    if prop not in ['z_positions', 'rot_alpha', 'rot_beta', 'rot_gamma', 'trans_x', 'trans_y']:
                         if prop in ['n_cols', 'n_rows']:
                             self._dut_types[custom][prop] = int(self._dut_widgets[current_dut][prop].text())
                         else:
@@ -721,10 +744,10 @@ class SetupTab(QtWidgets.QWidget):
                                     self._handle_widgets[dut][key].setDisabled(True)
 
                             elif new_type not in self._dut_types.keys():
-                                self._check_input(['z_positions', 'rot_alpha', 'rot_beta', 'rot_gamma'])
+                                self._check_input(['z_positions', 'rot_alpha', 'rot_beta', 'rot_gamma', 'trans_x', 'trans_y'])
 
                             else:
-                                self._check_input(['z_positions', 'rot_alpha', 'rot_beta', 'rot_gamma'])
+                                self._check_input(['z_positions', 'rot_alpha', 'rot_beta', 'rot_gamma', 'trans_x', 'trans_y'])
                                 self._handle_widgets[dut][key].setText('Overwrite')
                                 self._handle_widgets[dut]['label_h'].setText('Overwrite DUT type')
                                 message = 'Predefined DUT type "%s" will be overwritten!' % new_type
@@ -754,7 +777,7 @@ class SetupTab(QtWidgets.QWidget):
         for prop in self._dut_props:
 
             # Loop over properties, only set dut specific props
-            if prop not in ['z_positions', 'rot_alpha', 'rot_beta', 'rot_gamma']:
+            if prop not in ['z_positions', 'rot_alpha', 'rot_beta', 'rot_gamma', 'trans_x', 'trans_y']:
 
                 if dut_type is not None:
                     # List of all dut types in duts combobox
@@ -804,7 +827,7 @@ class SetupTab(QtWidgets.QWidget):
         for dut in dut_list:
             for prop in properties:
 
-                if prop in ['rot_alpha', 'rot_beta', 'rot_gamma', 'material_budget']:
+                if prop in ['rot_alpha', 'rot_beta', 'rot_gamma', 'material_budget', 'trans_x',  'trans_y']:
                     continue
 
                 # Get input text of respective property
@@ -938,7 +961,7 @@ class SetupTab(QtWidgets.QWidget):
             return
 
         # Required keys in setup
-        reqs = ('dut_names', 'rotations', 'pixel_size', 'n_pixels')
+        reqs = ('dut_names', 'rotations', 'pixel_size', 'n_pixels', 'translations')
 
         # Check requirements
         missing_keys = []
@@ -968,11 +991,14 @@ class SetupTab(QtWidgets.QWidget):
         rotations = ['rot_alpha', 'rot_beta', 'rot_gamma']
         pixel_size = ['pitch_col', 'pitch_row']
         n_pixels = ['n_cols', 'n_rows']
+        translations = ['trans_x', 'trans_y']
 
         for i, key in enumerate(setup['dut_names']):
             for prop in self._dut_props:
                 if prop in rotations:
                     self._dut_widgets[key][prop].setText(str(setup['rotations'][i][rotations.index(prop)]))
+                elif prop in translations:
+                    self._dut_widgets[key][prop].setText(str(setup['translations'][i][translations.index(prop)]))
                 elif prop in pixel_size:
                     self._dut_widgets[key][prop].setText(str(setup['pixel_size'][i][pixel_size.index(prop)]))
                 elif prop in n_pixels:
