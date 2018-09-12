@@ -756,8 +756,8 @@ class AnalysisWindow(QtWidgets.QMainWindow):
             return
         else:
             # Overwrite output path if locations is not empty; this only happens for saved sessions with no analysis
-            # At this point locations will only have identical paths in it, so just take 0th
             if locations.values():
+                # At this point locations will only have identical paths in it, so just take 0th
                 session['options']['output_path'] = locations.values()[0][0]
 
         # Start loading tabs
