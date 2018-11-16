@@ -159,14 +159,14 @@ if __name__ == '__main__':  # Main entry point is needed for multiprocessing und
     for fit_dut_index, actual_fit_dut in enumerate(fit_duts):
         track_estimates_chunk, chi2, x_errs, y_errs = track_analysis._fit_tracks_kalman_loop(
             measurements, dut_fit_selection,
-            pixel_size, n_pixels, measurements_plot[0, :, -1],
+            pixel_size, n_pixels, measurements_plot[0, :, 2],
             alignment=None,
             beam_energy=2500.,
             material_budget=[100. / 125390., 100. / 125390., 100. / 125390., 100. / 125390., 100. / 125390., 100. / 125390., 250. / 93700],
             add_scattering_plane=False)
         # interpolate hits with straight line
-        fit_x, _ = curve_fit(straight_line, measurements_plot[0, :, -1][fit_selection] / 1000., measurements[0, :, 0][fit_selection])
-        fit_y, _ = curve_fit(straight_line, measurements_plot[0, :, -1][fit_selection] / 1000., measurements[0, :, 1][fit_selection])
+        fit_x, _ = curve_fit(straight_line, measurements_plot[0, :, 2][fit_selection] / 1000., measurements[0, :, 0][fit_selection])
+        fit_y, _ = curve_fit(straight_line, measurements_plot[0, :, 2][fit_selection] / 1000., measurements[0, :, 1][fit_selection])
 
         # store
         track_estimates_chunk_all[fit_dut_index] = track_estimates_chunk
@@ -180,7 +180,7 @@ if __name__ == '__main__':  # Main entry point is needed for multiprocessing und
 
             # duts which are unused for fit
             unused_duts = np.setdiff1d(range(measurements_plot.shape[1]), fit_selection)
-            x_fit = np.arange(measurements_plot[0, :, -1][0], measurements_plot[0, :, -1][-1], 1.) / 1000.
+            x_fit = np.arange(measurements_plot[0, :, 2][0], measurements_plot[0, :, 2][-1], 1.) / 1000.
 
             # plot tracks in x-direction
             plt.title('Tracks in x-direction for DUT_%d' % plot_dut)
@@ -188,14 +188,14 @@ if __name__ == '__main__':  # Main entry point is needed for multiprocessing und
             plt.ylabel('x / $\mathrm{\mu}$m')
             plt.grid()
 
-            plt.errorbar(measurements_plot[0, :, -1] / 1000.,
+            plt.errorbar(measurements_plot[0, :, 2] / 1000.,
                          track_estimates_chunk_all[np.where(fit_duts == plot_dut)[0], :, 0].reshape(measurements.shape[1],),
                          yerr=x_errs_all[np.where(fit_duts == plot_dut)[0]].reshape(measurements.shape[1],),
                          marker='o', linestyle='-', label='Smoothed estimates', zorder=2)
-            plt.plot(measurements[0, :, -1][unused_duts] / 1000.,
+            plt.plot(measurements_plot[0, :, 2][unused_duts] / 1000.,
                      track_estimates_chunk_all[np.where(fit_duts == plot_dut)[0], unused_duts, 0].reshape(len(unused_duts),),
                      'o', color='indianred', zorder=4)
-            plt.plot(measurements[0, :, -1] / 1000.,
+            plt.plot(measurements_plot[0, :, 2] / 1000.,
                      measurements_plot[0, :, 0],
                      marker='o', linestyle='-', label='Hit positions', color='green', zorder=3)
             plt.plot(x_fit,
@@ -210,14 +210,14 @@ if __name__ == '__main__':  # Main entry point is needed for multiprocessing und
             plt.xlabel('z / mm')
             plt.ylabel('y / $\mathrm{\mu}$m')
             plt.grid()
-            plt.errorbar(measurements_plot[0, :, -1] / 1000.,
+            plt.errorbar(measurements_plot[0, :, 2] / 1000.,
                          track_estimates_chunk_all[np.where(fit_duts == plot_dut)[0], :, 1].reshape(measurements.shape[1],),
                          yerr=y_errs_all[np.where(fit_duts == plot_dut)[0]].reshape(measurements.shape[1],),
                          marker='o', linestyle='-', label='Smoothed estimates', zorder=2)
-            plt.plot(measurements_plot[0, :, -1][unused_duts] / 1000.,
+            plt.plot(measurements_plot[0, :, 2][unused_duts] / 1000.,
                      track_estimates_chunk_all[np.where(fit_duts == plot_dut)[0], unused_duts, 1].reshape(len(unused_duts), ),
                      'o', color='indianred', zorder=4)
-            plt.plot(measurements_plot[0, :, -1] / 1000.,
+            plt.plot(measurements_plot[0, :, 2] / 1000.,
                      measurements_plot[0, :, 1],
                      marker='o', linestyle='-', label='Hit positions', zorder=3)
             plt.plot(x_fit,
